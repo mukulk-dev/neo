@@ -1,0 +1,2877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead & Payment Dashboard · 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:#0f0f11;--bg2:#17171a;--bg3:#1e1e23;--bg4:#26262d;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --t1:#f0f0f2;--t2:#9898a8;--t3:#5a5a6a;
+  --bear:#e05a5a;--base:#5b8ff9;--bull:#52c97a;
+  --green:#34d399;--amber:#fbbf24;--red:#f87171;
+  --r:8px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 20px;font-size:13px;line-height:1.5}
+.page{max-width:1140px;margin:0 auto}
+
+/* PAGE TABS */
+.page-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:22px}
+.page-tab{padding:10px 22px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--t2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;margin-bottom:-1px}
+.page-tab:hover{color:var(--t1)}
+.page-tab.on{color:var(--t1);border-bottom-color:var(--base)}
+
+/* SCENARIO TABS */
+.sc-tabs{display:flex;gap:6px}
+.sc-tab{padding:6px 15px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--t2);font-family:'DM Sans',sans-serif;transition:all .15s}
+.sc-tab.bear.on{background:#7f1d1d;border-color:var(--bear);color:var(--bear)}
+.sc-tab.base.on{background:#1e3a7a;border-color:var(--base);color:var(--base)}
+.sc-tab.bull.on{background:#14532d;border-color:var(--bull);color:var(--bull)}
+
+/* HEADER */
+.hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.hdr-title{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.hdr-sub{font-size:11px;color:var(--t2);margin-top:4px;font-family:'DM Mono',monospace}
+
+/* METRIC CARDS */
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.mcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden}
+.mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--base))}
+.ml{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.mv{font-size:21px;font-weight:600;letter-spacing:-.5px;font-family:'DM Mono',monospace}
+.ms{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* PANELS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px}
+.ptitle{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:13px}
+
+/* CONTROLS */
+.ctrl{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ctrl-lbl{font-size:12px;color:var(--t2);min-width:145px}
+.ctrl-val{font-size:12px;font-weight:500;color:var(--t1);min-width:52px;text-align:right;font-family:'DM Mono',monospace}
+input[type=range]{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:var(--bg4);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--t1);cursor:pointer;border:2px solid var(--bg)}
+.l2p-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.pip{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.l2p-name{font-size:12px;color:var(--t2);min-width:115px}
+.l2p-val{font-size:12px;font-weight:500;font-family:'DM Mono',monospace;min-width:46px;text-align:right}
+.grid-vol{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:4px}
+.vol-item{display:flex;flex-direction:column;gap:3px}
+.vol-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+input[type=number]{background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:5px;padding:4px 6px;font-size:12px;width:100%;font-family:'DM Mono',monospace;text-align:right}
+input[type=number]:focus{outline:none;border-color:var(--base)}
+
+/* CHART */
+.chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 16px 10px;margin:14px 0}
+.chart-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.legend{display:flex;gap:11px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2)}
+.leg-dot{width:8px;height:8px;border-radius:2px}
+.vtoggle{display:flex;gap:4px}
+.vbtn{padding:5px 12px;border-radius:5px;font-size:11px;font-weight:500;border:1px solid var(--border2);background:transparent;color:var(--t2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s}
+.vbtn:hover{color:var(--t1)}
+.vbtn.on{background:var(--bg4);border-color:rgba(255,255,255,0.22);color:var(--t1)}
+
+/* DATA TABLES */
+.tbl-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow-x:auto}
+.dtable{width:100%;border-collapse:collapse;font-size:11.5px;min-width:700px}
+.dtable th{padding:9px 10px;color:var(--t3);font-weight:500;border-bottom:1px solid var(--border);text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;background:var(--bg3)}
+.dtable th:first-child{text-align:left;padding-left:16px}
+.dtable td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:right;color:var(--t1);font-family:'DM Mono',monospace;font-size:11px}
+.dtable td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;color:var(--t2);padding-left:16px;font-size:12px}
+.dtable tbody tr:hover td{background:var(--bg3)}
+.dtable tbody tr:last-child td{border-bottom:none}
+.dtable tfoot td{font-weight:600;border-top:1px solid var(--border2);border-bottom:none;background:var(--bg3);color:var(--t1);padding:10px}
+.dtable tfoot td:first-child{font-family:'DM Sans',sans-serif;padding-left:16px}
+.footnote{margin-top:14px;font-size:10.5px;color:var(--t3);font-family:'DM Mono',monospace;line-height:1.7;border-top:1px solid var(--border);padding-top:12px}
+
+/* ACTUALS TAB */
+.month-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.mpill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border2);background:transparent;color:var(--t2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;position:relative}
+.mpill:hover{color:var(--t1);border-color:rgba(255,255,255,0.25)}
+.mpill.on{background:var(--bg4);border-color:rgba(255,255,255,0.3);color:var(--t1)}
+.fdot{width:5px;height:5px;border-radius:50%;background:var(--green);position:absolute;top:5px;right:5px}
+
+.etable{width:100%;border-collapse:collapse;font-size:12px;min-width:750px}
+.etable th{padding:8px 10px;color:var(--t3);font-weight:500;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:var(--bg3);white-space:nowrap;text-align:right}
+.etable th:first-child{text-align:left;padding-left:14px}
+.etable td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:right}
+.etable td:first-child{padding-left:14px;text-align:left}
+.etable tbody tr:last-child td{border-bottom:none}
+.etable tfoot td{border-top:1px solid var(--border2);border-bottom:none;padding:8px;background:var(--bg3);font-weight:600;font-size:11px;font-family:'DM Mono',monospace;text-align:right}
+.etable tfoot td:first-child{font-family:'DM Sans',sans-serif;text-align:left;padding-left:14px}
+.act-inp{background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:5px;padding:4px 6px;font-size:12px;width:76px;font-family:'DM Mono',monospace;text-align:right;display:block;-moz-appearance:textfield}
+.act-inp:focus{outline:none;border-color:var(--base)}
+.act-inp::-webkit-outer-spin-button,.act-inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ref-val{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.04em}
+.b-ahead{background:rgba(52,211,153,0.15);color:#34d399}
+.b-close{background:rgba(251,191,36,0.15);color:#fbbf24}
+.b-behind{background:rgba(248,113,113,0.15);color:#f87171}
+.b-empty{background:rgba(90,90,106,0.15);color:#5a5a6a}
+.delta{font-size:11px;font-family:'DM Mono',monospace;font-weight:500}
+
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
+.chart-card-title{font-size:11px;color:var(--t2);margin-bottom:10px;font-weight:500}
+
+.impr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.impr-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;transition:border-color .2s}
+.impr-src{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.impr-name{font-size:13px;font-weight:500}
+.impr-stat{font-size:12px;color:var(--t2);margin-bottom:3px}
+.impr-stat b{color:var(--t1);font-weight:500}
+.impr-hint{font-size:11px;color:var(--t3);margin-top:6px;border-top:1px solid var(--border);padding-top:6px;font-family:'DM Mono',monospace;line-height:1.6}
+
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--t2);font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn:hover{color:var(--t1);border-color:rgba(255,255,255,0.25)}
+.btn.red:hover{color:var(--red);border-color:var(--red)}
+
+.pbar-wrap{background:var(--bg4);border-radius:4px;height:4px;overflow:hidden;margin-top:6px}
+.pbar{height:100%;border-radius:4px;transition:width .3s}
+
+.empty-msg{text-align:center;padding:40px 20px;color:var(--t3);font-size:13px}
+
+@media(max-width:700px){
+  .grid2,.impr-grid{grid-template-columns:1fr}
+  .grid4{grid-template-columns:repeat(2,1fr)}
+  .grid-vol{grid-template-columns:repeat(2,1fr)}
+  .two-charts{grid-template-columns:1fr}
+}
+.two-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+
+/* REMEMBER TOGGLE */
+.mem-toggle{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.mem-track{width:32px;height:18px;border-radius:9px;background:var(--bg4);border:1px solid var(--border2);position:relative;transition:background .2s;flex-shrink:0}
+.mem-thumb{width:12px;height:12px;border-radius:50%;background:var(--t2);position:absolute;top:2px;left:2px;transition:transform .2s,background .2s}
+#mem-chk{display:none}
+#mem-chk:checked~.mem-track{background:rgba(91,143,249,0.35);border-color:var(--base)}
+#mem-chk:checked~.mem-track .mem-thumb{transform:translateX(14px);background:var(--base)}
+.mem-lbl{font-size:11px;color:var(--t2);font-family:'DM Mono',monospace;white-space:nowrap}
+
+/* SHEET CONNECTOR */
+.sheet-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:16px}
+.sheet-collapsed .sheet-body{display:none}
+.sheet-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none}
+.sheet-title{font-size:12px;font-weight:500;color:var(--t1);display:flex;align-items:center;gap:8px}
+.sheet-arrow{font-size:11px;color:var(--t3);transition:transform .2s}
+.sheet-panel:not(.sheet-collapsed) .sheet-arrow{transform:rotate(90deg)}
+.sheet-body{margin-top:14px}
+.url-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.url-inp{flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:6px;padding:7px 10px;font-size:12px;font-family:'DM Mono',monospace}
+.url-inp:focus{outline:none;border-color:var(--base)}
+.url-inp::placeholder{color:var(--t3)}
+.fetch-btn{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--base);background:rgba(91,143,249,0.15);color:var(--base);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.fetch-btn:hover{background:rgba(91,143,249,0.28)}
+.fetch-btn:disabled{opacity:.4;cursor:default}
+.auto-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.auto-toggle-lbl{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--t2)}
+.auto-track{width:28px;height:16px;border-radius:8px;background:var(--bg4);border:1px solid var(--border2);position:relative;transition:background .2s;flex-shrink:0}
+.auto-thumb{width:10px;height:10px;border-radius:50%;background:var(--t2);position:absolute;top:2px;left:2px;transition:transform .2s,background .2s}
+#auto-chk{display:none}
+#auto-chk:checked~.auto-track{background:rgba(91,143,249,0.35);border-color:var(--base)}
+#auto-chk:checked~.auto-track .auto-thumb{transform:translateX(12px);background:var(--base)}
+.sheet-status{font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:5px;white-space:nowrap}
+.ss-idle{color:var(--t3)}
+.ss-ok{background:rgba(52,211,153,0.12);color:var(--green)}
+.ss-err{background:rgba(248,113,113,0.12);color:var(--red)}
+.ss-loading{color:var(--amber)}
+.sheet-hint{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;line-height:1.7;margin-top:10px;padding:10px 12px;background:var(--bg3);border-radius:6px;border-left:2px solid var(--border2)}
+.sheet-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;flex-shrink:0}
+.sheet-dot.ok{background:var(--green)}
+.sheet-dot.err{background:var(--red)}
+
+/* FETCH LOG */
+.log-line{color:var(--t2);padding:1px 0}
+.log-ok{color:var(--green)}
+.log-err{color:var(--red)}
+/* CONN TAB active state via JS toggle */
+.ctab.on{border-bottom-color:var(--base)!important;color:var(--t1)!important}
+
+/* DAY PROGRESS TRACKER */
+.dpt-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-top:14px}
+.dpt-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.dpt-title{font-size:13px;font-weight:500;color:var(--t1)}
+.dpt-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.dpt-mon-sel{background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'DM Sans',sans-serif}
+.day-slider-wrap{display:flex;align-items:center;gap:10px}
+.day-lbl{font-size:12px;color:var(--t2)}
+.day-num{font-size:22px;font-weight:600;color:var(--t1);font-family:'DM Mono',monospace;min-width:36px;text-align:center}
+.day-pct-lbl{font-size:11px;color:var(--t2);font-family:'DM Mono',monospace}
+.dpt-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:4px}
+.dpt-table th{padding:7px 10px;color:var(--t3);font-weight:500;border-bottom:0.5px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:var(--bg3);text-align:right;white-space:nowrap}
+.dpt-table th:first-child{text-align:left;padding-left:14px}
+.dpt-table td{padding:7px 10px;border-bottom:0.5px solid var(--border);text-align:right;color:var(--t1);font-family:'DM Mono',monospace;font-size:11px}
+.dpt-table td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;padding-left:14px}
+.dpt-table tbody tr:hover td{background:var(--bg3)}
+.dpt-table tbody tr:last-child td{border-bottom:none}
+.dpt-table tfoot td{border-top:1px solid var(--border2);border-bottom:none;background:var(--bg3);font-weight:600;padding:8px 10px;text-align:right}
+.dpt-table tfoot td:first-child{font-family:'DM Sans',sans-serif;padding-left:14px}
+.dpbar-wrap{background:var(--bg4);border-radius:3px;height:4px;overflow:hidden;margin-top:3px;min-width:60px}
+.dpbar{height:100%;border-radius:3px;transition:width .3s}
+.dpt-hint{font-size:10.5px;color:var(--t3);margin-top:10px;font-family:'DM Mono',monospace;line-height:1.7;border-top:0.5px solid var(--border);padding-top:8px}
+.ontrack-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-left:6px}
+.ot-ok{background:rgba(52,211,153,0.15);color:#34d399}
+.ot-warn{background:rgba(251,191,36,0.15);color:#fbbf24}
+.ot-behind{background:rgba(248,113,113,0.15);color:#f87171}
+
+/* CONSUMPTION / SALES FUNNEL TAB */
+.kpi4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:13px 15px;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--base))}
+.kpi-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.kpi-val{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.4px}
+.kpi-sub{font-size:10px;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:5px}
+.kpi-badge{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px}
+.kb-good{background:rgba(52,211,153,.15);color:#34d399}
+.kb-warn{background:rgba(251,191,36,.15);color:#fbbf24}
+.kb-bad{background:rgba(248,113,113,.15);color:#f87171}
+.cons-section{margin-top:14px}
+.cons-section-title{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.chart-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
+.chart-panel-title{font-size:11px;font-weight:500;color:var(--t2);margin-bottom:10px}
+.insight-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
+.insight-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)}
+.insight-item:last-child{border-bottom:none}
+.insight-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.insight-text{font-size:12px;color:var(--t2);line-height:1.6}
+.insight-text b{color:var(--t1);font-weight:500}
+.owner-table{width:100%;border-collapse:collapse;font-size:11px}
+.owner-table th{padding:7px 10px;color:var(--t3);font-weight:500;border-bottom:0.5px solid var(--border);text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--bg3);white-space:nowrap}
+.owner-table th:first-child{text-align:left;padding-left:12px}
+.owner-table td{padding:6px 10px;border-bottom:0.5px solid var(--border);text-align:right;color:var(--t1);font-family:'DM Mono',monospace;font-size:11px}
+.owner-table td:first-child{text-align:left;font-family:'DM Sans',sans-serif;padding-left:12px;font-size:12px}
+.owner-table tbody tr:hover td{background:var(--bg3)}
+.owner-table tbody tr:last-child td{border-bottom:none}
+.fbar-wrap{display:inline-block;background:var(--bg4);border-radius:2px;height:5px;width:60px;overflow:hidden;vertical-align:middle;margin-left:4px}
+.fbar{height:100%;border-radius:2px}
+.funnel-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0}
+.funnel-box{background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:8px 14px;text-align:center;flex:1;min-width:80px}
+.funnel-box-label{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.funnel-box-val{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;margin-top:2px}
+.funnel-box-pct{font-size:10px;color:var(--t3);margin-top:1px}
+.funnel-arrow{font-size:16px;color:var(--t3);flex-shrink:0}
+.trend-up{color:#34d399}
+.trend-down{color:#f87171}
+.trend-flat{color:#fbbf24}
+.cons-input-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.cons-input{background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'DM Mono',monospace;width:80px;text-align:right}
+.cons-input:focus{outline:none;border-color:var(--base)}
+@media(max-width:700px){.kpi4{grid-template-columns:repeat(2,1fr)}.two-col,.three-col{grid-template-columns:1fr}}
+
+/* ── SALES FUNNEL TAB ────────────────────────────────── */
+.sf-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.sf-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:13px 16px;position:relative;overflow:hidden}
+.sf-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--base))}
+.sf-kl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.sf-kv{font-size:20px;font-weight:600;font-family:'DM Mono',monospace}
+.sf-ks{font-size:10px;color:var(--t3);margin-top:3px}
+.sf-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px}
+.sf-panel-title{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sf2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.sf3col{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+/* coverage table */
+.cov-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.cov-table th{padding:7px 10px;color:var(--t3);font-weight:500;border-bottom:0.5px solid var(--border);text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--bg3);white-space:nowrap}
+.cov-table th:first-child{text-align:left;padding-left:12px}
+.cov-table td{padding:6px 10px;border-bottom:0.5px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--t1)}
+.cov-table td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;padding-left:12px;font-size:12px}
+.cov-table tbody tr:hover td{background:var(--bg3)}
+.cov-table tfoot td{border-top:1px solid var(--border2);border-bottom:none;background:var(--bg3);font-weight:600;padding:8px 10px}
+.cov-table tfoot td:first-child{font-family:'DM Sans',sans-serif;padding-left:12px}
+/* mini coverage bar */
+.covbar{display:inline-flex;align-items:center;gap:6px;width:100%}
+.covbar-track{flex:1;background:var(--bg4);border-radius:3px;height:5px;overflow:hidden;min-width:40px}
+.covbar-fill{height:100%;border-radius:3px}
+/* day checker */
+.dc-input-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.dc-sel{background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'DM Sans',sans-serif}
+.dc-day-ctrl{display:flex;align-items:center;gap:8px}
+.dc-day-num{font-size:22px;font-weight:600;color:var(--t1);font-family:'DM Mono',monospace;min-width:32px}
+.dc-note{font-size:10.5px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:8px;line-height:1.7;padding-top:8px;border-top:0.5px solid var(--border)}
+.sf-act-inp{background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:5px;padding:3px 6px;font-size:11px;width:68px;font-family:'DM Mono',monospace;text-align:right;-moz-appearance:textfield}
+.sf-act-inp::-webkit-outer-spin-button,.sf-act-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.sf-act-inp:focus{outline:none;border-color:var(--base)}
+.sf-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.sf-ok{background:rgba(52,211,153,.15);color:#34d399}
+.sf-warn{background:rgba(251,191,36,.15);color:#fbbf24}
+.sf-bad{background:rgba(248,113,113,.15);color:#f87171}
+.sf-na{background:rgba(90,90,106,.12);color:#5a5a6a}
+@media(max-width:700px){.sf-kpi-grid{grid-template-columns:repeat(2,1fr)}.sf2col,.sf3col{grid-template-columns:1fr}}
+
+/* TEAM PERF + PIPELINE TABS */
+.paste-zone{background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--r2);padding:12px;margin-bottom:10px}
+.paste-zone textarea{width:100%;background:transparent;border:none;color:var(--t1);font-size:11px;font-family:'DM Mono',monospace;resize:vertical;min-height:90px;outline:none;line-height:1.6}
+.paste-zone textarea::placeholder{color:var(--t3)}
+.data-tabs{display:flex;gap:4px;margin-bottom:12px}
+.dtab-btn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--t2);font-family:'DM Sans',sans-serif;transition:all .15s}
+.dtab-btn.on{background:var(--bg4);border-color:rgba(255,255,255,.22);color:var(--t1)}
+.team-block{margin-bottom:16px}
+.team-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-radius:var(--r) var(--r) 0 0;border:1px solid var(--border)}
+.team-name{font-size:13px;font-weight:500;color:var(--t1)}
+.team-total-badge{font-size:11px;font-family:'DM Mono',monospace;color:var(--t2)}
+.rep-table{width:100%;border-collapse:collapse;font-size:11.5px;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.rep-table th{padding:7px 10px;color:var(--t3);font-weight:500;border-bottom:0.5px solid var(--border);text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--bg2);white-space:nowrap}
+.rep-table th:first-child{text-align:left;padding-left:12px}
+.rep-table td{padding:6px 10px;border-bottom:0.5px solid var(--border);text-align:right;color:var(--t1);font-family:'DM Mono',monospace;font-size:11px;background:var(--bg2)}
+.rep-table td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-size:12px;padding-left:12px}
+.rep-table tbody tr:last-child td{border-bottom:none}
+.rep-table tfoot td{border-top:1px solid var(--border2);border-bottom:none;font-weight:600;background:var(--bg3);padding:7px 10px}
+.rep-table tfoot td:first-child{font-family:'DM Sans',sans-serif;padding-left:12px}
+.alert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.alert-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px}
+.alert-card-title{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.alert-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:0.5px solid var(--border);font-size:11px;color:var(--t2)}
+.alert-item:last-child{border-bottom:none}
+.alert-item b{color:var(--t1);font-weight:500}
+.alert-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.stage-bar-wrap{background:var(--bg4);border-radius:4px;height:8px;display:flex;overflow:hidden;margin:4px 0;gap:1px}
+.stage-seg{height:100%;transition:width .3s}
+.stage-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.stage-leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)}
+.pl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.pl-stage-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden}
+.pl-stage-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sc,var(--base))}
+.no-data-hint{text-align:center;padding:32px 20px;color:var(--t3);font-size:12px;font-family:'DM Mono',monospace;line-height:1.8}
+.call-bar{display:inline-block;height:4px;border-radius:2px;vertical-align:middle;margin-left:4px}
+@media(max-width:700px){.alert-grid,.pl-grid{grid-template-columns:1fr 1fr}}
+
+/* SLACK CONNECTOR */
+.slack-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 18px;margin-bottom:14px}
+.slack-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.slack-url-inp{flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:6px;padding:7px 10px;font-size:12px;font-family:'DM Mono',monospace}
+.slack-url-inp:focus{outline:none;border-color:#611f69}
+.slack-url-inp::placeholder{color:var(--t3)}
+.slack-btn{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #4a154b;background:rgba(74,21,75,0.2);color:#e8d5e8;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.slack-btn:hover{background:rgba(74,21,75,0.4)}
+.slack-btn:disabled{opacity:.4;cursor:default}
+.slack-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:4px}
+.slack-on{background:rgba(74,21,75,0.2);color:#e8d5e8;border:1px solid #4a154b}
+.slack-off{background:var(--bg3);color:var(--t3);border:1px solid var(--border)}
+.slack-auto-label{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--t2);cursor:pointer}
+.slack-auto-track{width:28px;height:16px;border-radius:8px;background:var(--bg4);border:1px solid var(--border2);position:relative;transition:background .2s;flex-shrink:0}
+.slack-auto-thumb{width:10px;height:10px;border-radius:50%;background:var(--t2);position:absolute;top:2px;left:2px;transition:transform .2s,background .2s}
+#slack-auto-chk{display:none}
+#slack-auto-chk:checked~.slack-auto-track{background:rgba(74,21,75,0.4);border-color:#4a154b}
+#slack-auto-chk:checked~.slack-auto-track .slack-auto-thumb{transform:translateX(12px);background:#e8d5e8}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- PAGE TABS -->
+<div class="page-tabs">
+  <button class="page-tab on" data-tab="forecast"     onclick="showTab('forecast')">📈 &nbsp;Forecast</button>
+  <button class="page-tab"    data-tab="actuals"      onclick="showTab('actuals')">✏️ &nbsp;Actuals vs Forecast</button>
+  <button class="page-tab"    data-tab="consumption"  onclick="showTab('consumption')">🔥 &nbsp;Sales Funnel</button>
+  <button class="page-tab"    data-tab="team-perf"   onclick="showTab('team-perf')">👥 &nbsp;Team Performance</button>
+  <button class="page-tab"    data-tab="pipeline"    onclick="showTab('pipeline')">📊 &nbsp;Pipeline Health</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB: FORECAST
+══════════════════════════════════════════ -->
+<div id="tab-forecast">
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">Lead &amp; Payment Forecast · Apr – Dec 2026</div>
+      <div class="hdr-sub">Source-wise L2P applied independently &nbsp;·&nbsp; ₹1,65,000 / sale &nbsp;·&nbsp; Actuals: Aug 2024 – Mar 2026</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <div class="sc-tabs">
+        <button class="sc-tab bear" onclick="setSc('bear')">↓ Bear</button>
+        <button class="sc-tab base on" onclick="setSc('base')">→ Base</button>
+        <button class="sc-tab bull" onclick="setSc('bull')">↑ Bull</button>
+      </div>
+      <label class="mem-toggle" title="When on, L2P rates, volumes and growth are saved automatically">
+        <input type="checkbox" id="mem-chk" onchange="toggleMem(this.checked)">
+        <span class="mem-track"><span class="mem-thumb"></span></span>
+        <span class="mem-lbl" id="mem-lbl">Remember tweaks: off</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="grid4" id="fc-cards" style="margin-bottom:16px"></div>
+
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="panel">
+      <div class="ptitle">Global assumptions</div>
+      <div class="ctrl"><span class="ctrl-lbl">Monthly growth %</span><input type="range" id="gr" min="-10" max="15" step="0.5" oninput="upd()"><span class="ctrl-val" id="gr-v"></span></div>
+      <div class="ctrl"><span class="ctrl-lbl">Aug – Oct seasonality</span><input type="range" id="sea" min="-15" max="40" step="1" oninput="upd()"><span class="ctrl-val" id="sea-v"></span></div>
+      <div class="ptitle" style="margin-top:14px">Starting volume per source (Apr 2026)</div>
+      <div class="grid-vol" id="vol-grid"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">L2P rate per source — individually tweakable</div>
+      <div id="l2p-sliders"></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-toolbar">
+      <div class="legend" id="fc-legend"></div>
+      <div class="vtoggle">
+        <button class="vbtn" onclick="setV('leads',this)">Leads</button>
+        <button class="vbtn on" onclick="setV('payments',this)">Payments</button>
+        <button class="vbtn" onclick="setV('revenue',this)">Revenue</button>
+      </div>
+    </div>
+    <div style="position:relative;width:100%;height:255px"><canvas id="fc-chart"></canvas></div>
+    <div style="margin-top:8px;text-align:center;font-size:10px;color:var(--t3);font-family:'DM Mono',monospace">muted bars = actuals (Aug 24 – Mar 26) &nbsp;·&nbsp; vivid bars = forecast (Apr – Dec 26)</div>
+  </div>
+
+  <div class="tbl-wrap"><table class="dtable"><thead id="fc-thead"></thead><tbody id="fc-tbody"></tbody><tfoot id="fc-tfoot"></tfoot></table></div>
+  <div class="footnote" id="fc-fn"></div>
+
+  <!-- DAY PROGRESS TRACKER -->
+  <div class="dpt-wrap">
+    <div class="dpt-header">
+      <div>
+        <span class="dpt-title">📅 Day Progress Tracker</span>
+        <span style="font-size:11px;color:var(--t3);margin-left:10px;font-family:'DM Mono',monospace">Based on actual daily arrival patterns Oct 2025 – Mar 2026</span>
+      </div>
+      <div class="dpt-controls">
+        <div>
+          <span style="font-size:11px;color:var(--t2);margin-right:6px">Month:</span>
+          <select class="dpt-mon-sel" id="dpt-month" onchange="updDPT()"></select>
+        </div>
+        <div class="day-slider-wrap">
+          <span class="day-lbl">Day</span>
+          <input type="range" id="dpt-day" min="1" max="31" value="15" step="1" oninput="updDPT()" style="width:140px">
+          <span class="day-num" id="dpt-day-num">15</span>
+          <span class="day-pct-lbl" id="dpt-overall-pct"></span>
+        </div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="dpt-table">
+        <thead><tr>
+          <th style="text-align:left">Source</th>
+          <th>Fcst Leads<br><span style="font-weight:400">Full month</span></th>
+          <th>Expected by Day N<br><span style="font-weight:400">Leads</span></th>
+          <th>Actual Leads<br><span style="font-weight:400">from Actuals tab</span></th>
+          <th>Leads Status</th>
+          <th>Fcst Payments<br><span style="font-weight:400">Full month</span></th>
+          <th>Expected by Day N<br><span style="font-weight:400">Payments</span></th>
+          <th>Actual Pays<br><span style="font-weight:400">from Actuals tab</span></th>
+          <th>Pays Status</th>
+        </tr></thead>
+        <tbody id="dpt-tbody"></tbody>
+        <tfoot id="dpt-tfoot"></tfoot>
+      </table>
+    </div>
+    <div class="dpt-hint" id="dpt-hint"></div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     TAB: ACTUALS
+══════════════════════════════════════════ -->
+<div id="tab-actuals" style="display:none">
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">Actuals vs Forecast · Apr – Dec 2026</div>
+      <div class="hdr-sub">Enter actuals month by month · data saved automatically in your browser &nbsp;·&nbsp; Forecast: Apr – Dec 2026</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="fill-label" style="font-size:11px;color:var(--t2);font-family:'DM Mono',monospace"></span>
+      <button class="btn red" onclick="clearAll()">Clear all data</button>
+    </div>
+  </div>
+
+
+  <!-- SHEET CONNECTOR -->
+  <div class="sheet-panel sheet-collapsed" id="sheet-panel">
+    <div class="sheet-hdr" onclick="toggleSheetPanel()">
+      <span class="sheet-title">
+        <span class="sheet-dot" id="sheet-dot"></span>
+        🔗 Connect Google Sheet
+        <span style="font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;font-weight:400" id="sheet-last-sync"></span>
+      </span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="sheet-status ss-idle" id="sheet-status">not connected</span>
+        <span class="sheet-arrow">▶</span>
+      </span>
+    </div>
+    <div class="sheet-body">
+
+      <!-- connector tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0">
+        <button class="ctab on" data-t="url" onclick="switchConnTab('url')" style="padding:6px 14px;background:transparent;border:none;border-bottom:2px solid var(--base);color:var(--t1);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px">Auto-fetch URL</button>
+        <button class="ctab" data-t="paste" onclick="switchConnTab('paste')" style="padding:6px 14px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px">Paste CSV</button>
+      </div>
+
+      <!-- URL tab -->
+      <div id="ct-url">
+        <div style="font-size:12px;color:var(--t2);margin-bottom:10px">
+          In Google Sheets: <b style="color:var(--t1)">File → Share → Publish to web → CSV → Copy link</b>
+        </div>
+        <div class="url-row">
+          <input class="url-inp" id="sheet-url" type="text" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" oninput="saveSheetUrl()">
+          <button class="fetch-btn" id="fetch-btn" onclick="fetchSheet()">↻ Fetch now</button>
+        </div>
+        <div class="auto-row" style="margin-bottom:10px">
+          <label class="auto-toggle-lbl">
+            <input type="checkbox" id="auto-chk" onchange="toggleAutoRefresh(this.checked)">
+            <span class="auto-track"><span class="auto-thumb"></span></span>
+            <span>Auto-refresh every</span>
+          </label>
+          <select id="refresh-interval" style="background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:5px;padding:4px 8px;font-size:12px;font-family:'DM Mono',monospace" onchange="toggleAutoRefresh(document.getElementById('auto-chk').checked)">
+            <option value="30">30 s</option>
+            <option value="60" selected>1 min</option>
+            <option value="300">5 min</option>
+            <option value="600">10 min</option>
+          </select>
+          <button class="btn" onclick="clearSheetData()" style="font-size:11px;padding:4px 12px">Disconnect</button>
+        </div>
+      </div>
+
+      <!-- Paste CSV tab -->
+      <div id="ct-paste" style="display:none">
+        <div style="font-size:12px;color:var(--t2);margin-bottom:8px">
+          Open your sheet URL in the browser, select all (<b style="color:var(--t1)">Ctrl+A</b>), copy and paste here.
+          Or download as CSV (<b style="color:var(--t1)">File → Download → CSV</b>) and paste its contents.
+        </div>
+        <textarea id="paste-area" placeholder="Month,Source,Leads,Payments&#10;May 26,web,1820,62&#10;May 26,cold-calls,1050,28&#10;..." style="width:100%;height:110px;background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:6px;padding:8px 10px;font-size:11px;font-family:'DM Mono',monospace;resize:vertical;line-height:1.6"></textarea>
+        <button class="fetch-btn" onclick="applyPastedCSV()" style="margin-top:8px">↑ Import pasted CSV</button>
+      </div>
+
+      <!-- Fetch log (shown on attempt) -->
+      <div id="fetch-log-wrap" style="display:none;margin-top:10px">
+        <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Fetch log</div>
+        <div id="fetch-log" style="background:var(--bg3);border-radius:6px;border:1px solid var(--border);padding:8px 10px;font-size:11px;font-family:'DM Mono',monospace;max-height:120px;overflow-y:auto;line-height:1.8"></div>
+      </div>
+
+      <!-- Format hint -->
+      <div class="sheet-hint" style="margin-top:10px">
+        <b style="color:var(--t1)">Expected columns (row 1 = header):</b>&nbsp; <code>Month</code> · <code>Source</code> · <code>Leads</code> · <code>Payments</code><br>
+        <b style="color:var(--t1)">Month values:</b> Apr 26 · May 26 · Jun 26 · Jul 26 · Aug 26 · Sep 26 · Oct 26 · Nov 26 · Dec 26<br>
+        <b style="color:var(--t1)">Source values:</b> web · cold-calls · int · comms · ama rec · ama l · apxor · misc<br>
+        <b style="color:var(--t1)">Tip:</b> The fetch log below shows exactly which rows were skipped and why — use it to fix mismatches.
+      </div>
+    </div>
+  </div>
+
+  <div class="month-pills" id="month-pills"></div>
+
+  <div class="panel" id="entry-panel" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+      <div>
+        <span id="entry-month-lbl" style="font-size:15px;font-weight:600"></span>
+        <span style="font-size:12px;color:var(--t2);margin-left:10px">Enter actual leads and payments per source</span>
+      </div>
+      <button class="btn red" onclick="clearMonth()">Clear this month</button>
+    </div>
+    <div style="overflow-x:auto"><table class="etable" id="entry-tbl"></table></div>
+  </div>
+
+  <div id="comp-section"></div>
+
+</div><!-- /tab-actuals -->
+
+<!-- ══════════════════════════════════════════
+     TAB: SALES FUNNEL / CONSUMPTION
+══════════════════════════════════════════ -->
+<div id="tab-consumption" style="display:none">
+
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">Sales Funnel &amp; Consumption Tracker</div>
+      <div class="hdr-sub">Source-wise consumption vs leads received &nbsp;·&nbsp; Historical: Oct 2025 – Mar 2026 &nbsp;·&nbsp; Actuals auto-pulled from tab 2</div>
+    </div>
+  </div>
+
+
+
+  <!-- ════════════════════════════════════
+       VIEW 1: DAY CHECKER
+  ════════════════════════════════════ -->
+  <div class="sf-panel">
+    <div class="sf-panel-title">
+      <span>📅 Day-wise consumption checker — by this day, how much should be consumed?</span>
+      <div class="dc-input-row" style="margin:0">
+        <div>
+          <span style="font-size:11px;color:var(--t2);margin-right:6px">Month:</span>
+          <select class="dc-sel" id="sf-month" onchange="updSF()"></select>
+        </div>
+        <div class="dc-day-ctrl">
+          <span style="font-size:11px;color:var(--t2)">Day</span>
+          <input type="range" id="sf-day" min="1" max="31" value="15" step="1" oninput="updSF()" style="width:120px">
+          <span class="dc-day-num" id="sf-day-num">15</span>
+        </div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="cov-table">
+        <thead><tr>
+          <th style="text-align:left">Source</th>
+          <th>Leads received<br><span style="font-weight:400">from actuals tab</span></th>
+          <th>% consumed<br><span style="font-weight:400">by day N</span></th>
+          <th>Expected consumed<br><span style="font-weight:400">by day N</span></th>
+          <th>Actual consumed<br><span style="font-weight:400">enter below ↓</span></th>
+          <th>Coverage vs expected</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody id="sf-day-tbody"></tbody>
+        <tfoot id="sf-day-tfoot"></tfoot>
+      </table>
+    </div>
+    <div class="dc-note" id="sf-day-note"></div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       VIEW 2: MONTHLY CONSUMPTION VIEW
+  ════════════════════════════════════ -->
+  <div class="sf-panel">
+    <div class="sf-panel-title">Monthly source-wise consumption vs leads received — Oct 2025 to Mar 2026</div>
+
+    <!-- coverage chart -->
+    <div style="position:relative;width:100%;height:240px;margin-bottom:14px"><canvas id="sf-cov-chart"></canvas></div>
+
+    <!-- source breakdown table -->
+    <div style="overflow-x:auto">
+      <table class="cov-table" id="sf-monthly-tbl">
+        <thead id="sf-monthly-thead"></thead>
+        <tbody id="sf-monthly-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       SOURCE COVERAGE TREND SPARKLINES
+  ════════════════════════════════════ -->
+  <div class="sf2col">
+    <div class="sf-panel" style="margin-bottom:0">
+      <div class="sf-panel-title">Coverage % by source — last 6 months</div>
+      <div style="position:relative;height:200px"><canvas id="sf-src-trend"></canvas></div>
+    </div>
+    <div class="sf-panel" style="margin-bottom:0">
+      <div class="sf-panel-title">Consumption volume by source — last 6 months</div>
+      <div style="position:relative;height:200px"><canvas id="sf-src-vol"></canvas></div>
+    </div>
+  </div>
+
+</div><!-- /tab-consumption -->
+
+<!-- ══════════════════════════════════════════
+     TAB: TEAM & REP PERFORMANCE
+══════════════════════════════════════════ -->
+<div id="tab-team-perf" style="display:none">
+
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">Team &amp; Rep Performance</div>
+      <div class="hdr-sub" id="tp-week-lbl">Auto-groups by manager · alerts shown here in dashboard only</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn red" onclick="clearTeamData()">Clear data</button>
+    </div>
+  </div>
+
+  <!-- SHEET CONNECTOR -->
+  <div class="sheet-panel sheet-collapsed" id="tp-sheet-panel">
+    <div class="sheet-hdr" onclick="document.getElementById('tp-sheet-panel').classList.toggle('sheet-collapsed')">
+      <span class="sheet-title">
+        <span class="sheet-dot" id="tp-sheet-dot"></span>
+        🔗 Connect Google Sheet
+        <span style="font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;font-weight:400" id="tp-last-sync"></span>
+      </span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="sheet-status ss-idle" id="tp-sheet-status">not connected</span>
+        <span class="sheet-arrow">▶</span>
+      </span>
+    </div>
+    <div class="sheet-body">
+      <div style="font-size:12px;color:var(--t2);margin-bottom:10px">
+        One sheet, all columns together. In Google Sheets: <b style="color:var(--t1)">File → Share → Publish to web → CSV → Copy link</b>
+      </div>
+      <div class="url-row">
+        <input class="url-inp" id="tp-url" type="text" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" oninput="saveTpUrl()">
+        <button class="fetch-btn" id="tp-fetch-btn" onclick="fetchTeamSheet()">↻ Fetch now</button>
+      </div>
+      <div class="auto-row" style="margin-bottom:10px">
+        <label class="auto-toggle-lbl">
+          <input type="checkbox" id="tp-auto-chk" onchange="toggleTpAutoRefresh(this.checked)">
+          <span class="auto-track"><span class="auto-thumb"></span></span>
+          <span>Auto-refresh every</span>
+        </label>
+        <select id="tp-refresh-interval" style="background:var(--bg3);border:1px solid var(--border2);color:var(--t1);border-radius:5px;padding:4px 8px;font-size:12px;font-family:'DM Mono',monospace" onchange="toggleTpAutoRefresh(document.getElementById('tp-auto-chk').checked)">
+          <option value="30">30 s</option>
+          <option value="60" selected>1 min</option>
+          <option value="300">5 min</option>
+        </select>
+      </div>
+      <div id="tp-fetch-log-wrap" style="display:none;margin-top:10px">
+        <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Fetch log</div>
+        <div id="tp-fetch-log" style="background:var(--bg3);border-radius:6px;border:1px solid var(--border);padding:8px 10px;font-size:11px;font-family:'DM Mono',monospace;max-height:100px;overflow-y:auto;line-height:1.8"></div>
+      </div>
+      <div class="sheet-hint" style="margin-top:10px">
+        <b style="color:var(--t1)">Expected columns (all in one sheet, row 1 = header):</b><br>
+        <code>Manager</code> · <code>Owner</code> · <code>Follow-up Required</code> · <code>Interested</code> · <code>Prospect</code> · <code>Re-activated</code> · <code>Grand Total</code> · <code>total_call_time</code> · <code>dialed_calls</code> · <code>connected_calls</code><br><br>
+        Not all columns are required — pipeline-only or calls-only sheets work fine. Each row = one rep.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLACK CONNECTOR -->
+  <div class="slack-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px">💬</span>
+        <span style="font-size:13px;font-weight:500;color:var(--t1)">Slack notifications</span>
+        <span class="slack-badge slack-off" id="slack-status-badge">not connected</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="slack-btn" onclick="sendSlackReport()" id="slack-report-btn">📤 Send report now</button>
+        <label class="slack-auto-label" title="Send alert to Slack automatically when issues are detected on each fetch">
+          <input type="checkbox" id="slack-auto-chk" onchange="toggleSlackAuto(this.checked)">
+          <span class="slack-auto-track"><span class="slack-auto-thumb"></span></span>
+          <span>Auto-alert on issues</span>
+        </label>
+      </div>
+    </div>
+    <div class="slack-row">
+      <input class="slack-url-inp" id="slack-webhook-url" type="text" placeholder="https://hooks.slack.com/services/T.../B.../..." oninput="saveSlackUrl()">
+      <button class="slack-btn" onclick="testSlack()">Test ping</button>
+    </div>
+    <div style="font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;line-height:1.7">
+      Create a webhook: <b style="color:var(--t1)">api.slack.com/apps → Your App → Incoming Webhooks → Activate → Add New Webhook → choose channel → Copy URL</b><br>
+      Or use an existing bot's webhook URL. URL is saved in your browser, never sent anywhere except Slack.
+    </div>
+  </div>
+
+  <!-- VIEW TOGGLE -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <div class="data-tabs">
+      <button class="dtab-btn on" onclick="setTPView('combined',this)">Combined view</button>
+      <button class="dtab-btn" onclick="setTPView('stages',this)">Pipeline stages</button>
+      <button class="dtab-btn" onclick="setTPView('calls',this)">Call metrics</button>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div id="tp-alerts"></div>
+
+  <!-- TEAM BREAKDOWN -->
+  <div id="tp-teams"></div>
+
+</div><!-- /tab-team-perf -->
+
+<!-- ══════════════════════════════════════════
+     TAB: PIPELINE STAGE HEALTH
+══════════════════════════════════════════ -->
+<div id="tab-pipeline" style="display:none">
+
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">Pipeline Stage Health</div>
+      <div class="hdr-sub">Stage distribution across teams · backlog alerts · stale lead tracking</div>
+    </div>
+  </div>
+
+  <div id="pl-content">
+    <div class="no-data-hint">Go to <b style="color:var(--t1)">Team Performance</b> tab and paste your pipeline stage data first.<br>This tab auto-populates from the same data.</div>
+  </div>
+
+</div><!-- /tab-pipeline -->
+
+
+</div>
+
+<script>
+/* ── DATA ─────────────────────────────── */
+const SRCS=['web','cold-calls','int','comms','ama rec','ama l','apxor','misc'];
+const SL={'web':'Web','cold-calls':'Cold Calls','int':'Internal','comms':'Comms','ama rec':'AMA Rec','ama l':'AMA L','apxor':'Apxor','misc':'Misc (LR+R)'};
+const CLR={'web':'#5b8ff9','cold-calls':'#f97b5b','int':'#a78bfa','comms':'#34d399','ama rec':'#fbbf24','ama l':'#f472b6','apxor':'#86efac','misc':'#22d3ee'};
+const PER_SALE=165000;
+const HMON=['Apr 24','May 24','Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+const FMON=['Apr 26','May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26'];
+const AMON=[...HMON,...FMON];
+
+const HL={
+  'web':        [515,822,758,840,1396,1567,1533,1611,1677,1972,2101,2181,2087,2171,2123,1300,1744,1834,2170,2344,2053,2031,1700,1483],
+  'cold-calls': [2585,1894,1746,1555,1108,1131,1077,828,1208,1608,3420,3776,3526,3488,2844,1625,957,1095,1009,715,1032,1107,818,1181],
+  'int':        [285,492,1108,475,257,299,256,233,269,374,746,708,926,895,854,654,743,732,727,759,686,857,632,702],
+  'comms':      [6,47,28,42,40,65,82,18,29,50,107,486,445,256,209,68,100,184,183,116,90,139,67,107],
+  'ama rec':    [10,0,46,178,73,168,188,7,24,6,33,0,53,65,11,129,129,66,164,164,148,120,159,34],
+  'ama l':      [372,428,222,100,193,45,1,252,196,190,231,16,437,125,134,108,75,55,185,20,83,81,73,192],
+  'apxor':      [330,0,37,49,74,109,159,102,88,92,29,48,12,176,47,115,60,146,75,87,62,52,98,116],
+  'misc':       [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+};
+const HP={
+  'web':        [22,79,39,73,99,95,69,65,77,108,88,102,55,66,77,36,57,69,86,78,58,67,65,42],
+  'cold-calls': [20,20,15,24,23,20,18,14,17,22,25,45,19,23,28,51,22,23,29,21,17,38,24,36],
+  'int':        [3,15,16,14,6,10,5,7,5,6,13,7,16,9,12,10,16,6,9,11,14,13,8,9],
+  'comms':      [0,0,0,1,3,1,5,1,0,2,2,17,6,16,20,4,3,9,5,4,2,3,2,3],
+  'ama rec':    [2,0,1,12,4,13,12,2,1,0,1,0,4,5,1,0,2,0,7,3,4,1,6,2],
+  'ama l':      [18,13,11,7,13,4,0,13,13,10,17,0,12,6,4,4,1,2,10,1,1,4,0,13],
+  'apxor':      [3,0,0,1,8,10,5,5,4,3,0,4,0,3,0,4,1,7,5,2,0,1,7,5],
+  'misc':       [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+};
+const HIST_L2P={'web':3.36,'cold-calls':2.81,'int':1.47,'comms':2.71,'ama rec':2.92,'ama l':4.57,'apxor':4.08,'misc':30.0};
+const BASE_VOL={'web':1738,'cold-calls':1035,'int':730,'comms':104,'ama rec':104,'ama l':115,'apxor':89,'misc':90};
+const SC_PRE={bear:{growth:-1,sea:4,lm:0.93},base:{growth:1.5,sea:10,lm:1.05},bull:{growth:4,sea:20,lm:1.20}};
+
+/* ── STATE ──────────────────────────────*/
+let activeSc='base',l2p={...HIST_L2P},vols={...BASE_VOL},view='payments',activeTab='forecast',selMonth=0;
+let actuals={};
+FMON.forEach(m=>{actuals[m]={};SRCS.forEach(s=>{actuals[m][s]={leads:'',pay:''};});});
+let fcChart,aMonChart,aSrcChart;
+
+/* ── TAB SWITCH ─────────────────────────*/
+function showTab(t){
+  activeTab=t;
+  document.querySelectorAll('.page-tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.getElementById('tab-forecast').style.display=t==='forecast'?'':'none';
+  document.getElementById('tab-actuals').style.display=t==='actuals'?'':'none';
+  document.getElementById('tab-consumption').style.display=t==='consumption'?'':'none';
+  document.getElementById('tab-team-perf').style.display=t==='team-perf'?'':'none';
+  document.getElementById('tab-pipeline').style.display=t==='pipeline'?'':'none';
+  if(t==='forecast'){ updFcChart(forecast()); updDPT(); }
+  else if(t==='actuals'){buildActUI();updActuals();}
+  else if(t==='consumption'){
+    try{
+      buildSFMonthSelect();
+      updSFDayChecker();
+      setTimeout(()=>{try{buildSFCharts();}catch(e){console.error('SF charts:',e);}},50);
+    }catch(e){
+      console.error('SF init error:',e);
+      const el=document.getElementById('sf-kpis');
+      if(el) el.innerHTML='<div style="color:#f87171;padding:16px;font-family:DM Mono,monospace;font-size:12px">Error loading Sales Funnel: '+e.message+'</div>';
+    }
+  }
+}
+
+/* ── SCENARIO ───────────────────────────*/
+function setSc(s){
+  activeSc=s;
+  document.querySelectorAll('.sc-tab').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.sc-tab.'+s).classList.add('on');
+  const p=SC_PRE[s];
+  document.getElementById('gr').value=p.growth;
+  document.getElementById('sea').value=p.sea;
+  SRCS.forEach(src=>{
+    l2p[src]=parseFloat((HIST_L2P[src]*p.lm).toFixed(2));
+    const sl=document.getElementById('l2p-'+src),vl=document.getElementById('l2pv-'+src);
+    if(sl)sl.value=l2p[src];
+    if(vl)vl.textContent=l2p[src].toFixed(2)+'%';
+  });
+  upd();
+}
+function setV(v,btn){view=v;document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');upd();}
+
+/* ── FORECAST COMPUTE ───────────────────*/
+function forecast(){
+  const gr=parseFloat(document.getElementById('gr').value)/100;
+  const sea=parseFloat(document.getElementById('sea').value)/100;
+  const SEA=[4,5,6];const res={}; // Aug Sep Oct
+  SRCS.forEach(src=>{res[src]=Array.from({length:FMON.length},(_,i)=>{
+    const leads=Math.round(vols[src]*Math.pow(1+gr,i)*(SEA.includes(i)?1+sea:1));
+    const pay=Math.round(leads*l2p[src]/100);
+    return{leads,pay,rev:pay*PER_SALE};
+  });});
+  return res;
+}
+
+/* ── MASTER UPDATE ──────────────────────*/
+function upd(){
+  const gr=parseFloat(document.getElementById('gr').value);
+  const sea=parseFloat(document.getElementById('sea').value);
+  document.getElementById('gr-v').textContent=gr.toFixed(1)+'%';
+  document.getElementById('sea-v').textContent=(sea>=0?'+':'')+sea.toFixed(0)+'%';
+  const fc=forecast();
+  updFcCards(fc);
+  if(activeTab==='forecast')updFcChart(fc);
+  updFcTable(fc);
+  updFcFn();
+  if(activeTab==='actuals')updActuals();
+  if(activeTab==='forecast')updDPT();
+  saveTweaks();
+}
+
+/* ── FORECAST TAB ───────────────────────*/
+function updFcCards(fc){
+  const tL=SRCS.reduce((a,s)=>a+fc[s].reduce((b,m)=>b+m.leads,0),0);
+  const tP=SRCS.reduce((a,s)=>a+fc[s].reduce((b,m)=>b+m.pay,0),0);
+  const tR=SRCS.reduce((a,s)=>a+fc[s].reduce((b,m)=>b+m.rev,0),0);
+  const ac=activeSc==='bear'?'var(--bear)':activeSc==='bull'?'var(--bull)':'var(--base)';
+  document.getElementById('fc-cards').innerHTML=`
+    <div class="mcard" style="--accent:${ac}"><p class="ml">Forecast Leads</p><p class="mv" style="color:${ac}">${tL.toLocaleString()}</p><p class="ms">Apr – Dec 2026</p></div>
+    <div class="mcard" style="--accent:${ac}"><p class="ml">Forecast Payments</p><p class="mv" style="color:${ac}">${tP.toLocaleString()}</p><p class="ms">paid conversions</p></div>
+    <div class="mcard" style="--accent:${ac}"><p class="ml">Blended L2P</p><p class="mv" style="color:${ac}">${(tP/tL*100).toFixed(2)}%</p><p class="ms">across all sources</p></div>
+    <div class="mcard" style="--accent:${ac}"><p class="ml">Total Revenue</p><p class="mv" style="color:${ac}">₹${(tR/1e7).toFixed(2)}Cr</p><p class="ms">@ ₹1.65L per sale</p></div>`;
+}
+
+function updFcChart(fc){
+  const sep={id:'sep',afterDraw(ch){
+    const ctx=ch.ctx,xs=ch.scales.x;
+    const px=(xs.getPixelForValue(HMON.length-1)+xs.getPixelForValue(HMON.length))/2;
+    ctx.save();ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+    ctx.moveTo(px,ch.chartArea.top);ctx.lineTo(px,ch.chartArea.bottom);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='10px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText('now ▼',px,ch.chartArea.top-5);ctx.restore();
+  }};
+  const ds=SRCS.map(src=>{
+    const hd=view==='leads'?HL[src]:view==='payments'?HP[src]:HP[src].map(p=>p*PER_SALE);
+    const fd=fc[src].map(m=>view==='leads'?m.leads:view==='payments'?m.pay:m.rev);
+    const c=CLR[src];
+    return{label:SL[src],data:[...hd,...fd],backgroundColor:[...Array(HMON.length).fill(c+'33'),...Array(FMON.length).fill(c+'CC')],stack:'s'};
+  });
+  const yF=v=>view==='revenue'?'₹'+(v/1e5).toFixed(0)+'L':v.toLocaleString();
+  if(fcChart)fcChart.destroy();
+  fcChart=new Chart(document.getElementById('fc-chart'),{type:'bar',plugins:[sep],data:{labels:AMON,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:'#5a5a6a',font:{size:10,family:'DM Mono'},autoSkip:false,maxRotation:45},grid:{display:false}},
+              y:{stacked:true,beginAtZero:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a6a',font:{size:10,family:'DM Mono'},callback:yF}}}}});
+}
+
+function updFcTable(fc){
+  const ac=activeSc==='bear'?'var(--bear)':activeSc==='bull'?'var(--bull)':'var(--base)';
+  document.getElementById('fc-thead').innerHTML=`<tr><th style="text-align:left">Month</th>${SRCS.map(s=>`<th style="color:${CLR[s]}">${SL[s]}<br><span style="font-size:9px;color:var(--t3);text-transform:none;letter-spacing:0">${l2p[s].toFixed(2)}%</span></th>`).join('')}<th style="color:${ac}">Total</th><th style="color:${ac}">Revenue</th></tr>`;
+  let gP=0,gR=0;const gS={};SRCS.forEach(s=>gS[s]=0);
+  document.getElementById('fc-tbody').innerHTML=FMON.map((m,i)=>{
+    const rP=SRCS.reduce((a,s)=>a+fc[s][i].pay,0);
+    const rR=SRCS.reduce((a,s)=>a+fc[s][i].rev,0);
+    gP+=rP;gR+=rR;SRCS.forEach(s=>gS[s]+=fc[s][i].pay);
+    return`<tr><td>${m}</td>${SRCS.map(s=>`<td>${fc[s][i].pay.toLocaleString()}</td>`).join('')}<td style="font-weight:600">${rP.toLocaleString()}</td><td style="color:${ac}">₹${(rR/1e5).toFixed(1)}L</td></tr>`;
+  }).join('');
+  document.getElementById('fc-tfoot').innerHTML=`<tr><td>Total</td>${SRCS.map(s=>`<td style="color:${CLR[s]}">${gS[s].toLocaleString()}</td>`).join('')}<td style="color:${ac}">${gP.toLocaleString()}</td><td style="color:${ac}">₹${(gR/1e7).toFixed(2)}Cr</td></tr>`;
+}
+function updFcFn(){
+  document.getElementById('fc-fn').textContent='L2P rates based on Oct 2025–Mar 2026 (recent 6 months)  ·  '+SRCS.map(s=>`${SL[s]}: ${HIST_L2P[s]}%`).join(' · ')+'  ·  Misc assumed @ 30% L2P, ~90 leads/mo  ·  History: Aug 2024–Mar 2026 (24 months)';
+}
+
+function buildFcUI(){
+  document.getElementById('l2p-sliders').innerHTML=SRCS.map(src=>`
+    <div class="l2p-row">
+      <span class="pip" style="background:${CLR[src]}"></span>
+      <span class="l2p-name">${SL[src]}</span>
+      <input type="range" id="l2p-${src}" min="0.1" max="60" step="0.01" value="${l2p[src]}"
+        oninput="l2p['${src}']=parseFloat(this.value);document.getElementById('l2pv-${src}').textContent=parseFloat(this.value).toFixed(2)+'%';upd()">
+      <span class="l2p-val" id="l2pv-${src}" style="color:${CLR[src]}">${l2p[src].toFixed(2)}%</span>
+    </div>`).join('');
+  document.getElementById('vol-grid').innerHTML=SRCS.map(src=>`
+    <div class="vol-item">
+      <span class="vol-lbl" style="color:${CLR[src]}">${SL[src]}</span>
+      <input type="number" value="${vols[src]}" min="0" onchange="vols['${src}']=Math.max(0,parseInt(this.value)||0);upd()">
+    </div>`).join('');
+  document.getElementById('fc-legend').innerHTML=SRCS.map(s=>`<span class="leg-item"><span class="leg-dot" style="background:${CLR[s]}"></span>${SL[s]}</span>`).join('');
+}
+
+/* ── ACTUALS PERSISTENCE ─────────────────*/
+function saveAct(){try{localStorage.setItem('lf_act_v3',JSON.stringify(actuals));}catch(e){}}
+function loadAct(){
+  try{
+    const d=localStorage.getItem('lf_act_v3');if(!d)return;
+    const p=JSON.parse(d);
+    FMON.forEach(m=>{if(p[m])SRCS.forEach(s=>{if(p[m][s])actuals[m][s]=p[m][s];});});
+  }catch(e){}
+}
+
+/* ── ACTUALS TAB BUILD ──────────────────*/
+function buildActUI(){
+  const pills=document.getElementById('month-pills');
+  if(pills.children.length===0){
+    pills.innerHTML=FMON.map((m,i)=>`<button class="mpill${i===selMonth?' on':''}" id="pill-${i}" onclick="selMon(${i})">${m}<span class="fdot" id="fd-${i}" style="display:none"></span></button>`).join('');
+  }
+}
+
+function selMon(i){
+  selMonth=i;
+  document.querySelectorAll('.mpill').forEach((p,j)=>p.classList.toggle('on',j===i));
+  document.getElementById('entry-month-lbl').textContent=FMON[i];
+  buildEntryTable(i);
+  updActComp();
+}
+
+function hasData(mi){const m=FMON[mi];return SRCS.some(s=>actuals[m][s].leads!==''||actuals[m][s].pay!=='');}
+
+function updDots(){
+  let filled=0;
+  FMON.forEach((m,i)=>{const has=hasData(i);const d=document.getElementById('fd-'+i);if(d)d.style.display=has?'block':'none';if(has)filled++;});
+  const lbl=document.getElementById('fill-label');if(lbl)lbl.textContent=filled+' / 8 months filled';
+}
+
+function setAct(mi,src,field,val){
+  const m=FMON[mi];
+  actuals[m][src][field]=val===''?'':Math.max(0,parseInt(val)||0);
+  saveAct();updEntryCalcs(mi);updActComp();updDots();updDPT();
+  if(activeTab==='consumption') updSFCharts();
+}
+
+function updActuals(){buildActUI();updDots();document.getElementById('entry-month-lbl').textContent=FMON[selMonth];buildEntryTable(selMonth);updActComp();}
+
+/* Build full table structure + inputs — only called when switching months */
+function buildEntryTable(mi){
+  const m=FMON[mi],fc=forecast();
+  const thead=`<thead><tr>
+    <th style="text-align:left">Source</th>
+    <th>Fcst Leads</th><th>Fcst Pays</th>
+    <th>Actual Leads</th><th>Actual Pays</th>
+    <th>Actual L2P%</th><th>Δ Pays</th><th>Status</th>
+  </tr></thead>`;
+  const rows=SRCS.map(src=>{
+    const fd=fc[src][mi];const ad=actuals[m][src];
+    return`<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:7px"><span class="pip" style="background:${CLR[src]}"></span>${SL[src]}</span></td>
+      <td><span class="ref-val">${fd.leads.toLocaleString()}</span></td>
+      <td><span class="ref-val">${fd.pay.toLocaleString()}</span></td>
+      <td><input class="act-inp" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" value="${ad.leads}" oninput="setAct(${mi},'${src}','leads',this.value)"></td>
+      <td><input class="act-inp" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" value="${ad.pay}" oninput="setAct(${mi},'${src}','pay',this.value)"></td>
+      <td id="lc-${src}"></td>
+      <td id="dc-${src}"></td>
+      <td id="sc-${src}"></td>
+    </tr>`;
+  }).join('');
+  const tfoot=`<tfoot><tr>
+    <td>Total</td>
+    <td id="tot-fl"></td><td id="tot-fp"></td>
+    <td id="tot-al"></td><td id="tot-ap"></td>
+    <td id="tot-l2p"></td><td id="tot-delta"></td><td id="tot-pct"></td>
+  </tr></tfoot>`;
+  document.getElementById('entry-tbl').innerHTML=thead+'<tbody>'+rows+'</tbody>'+tfoot;
+  updEntryCalcs(mi);
+}
+
+/* Update only computed cells — never touches inputs, focus preserved */
+function updEntryCalcs(mi){
+  const m=FMON[mi],fc=forecast();
+  let tfL=0,tfP=0,taL=0,taP=0;
+  SRCS.forEach(src=>{
+    const fd=fc[src][mi];const ad=actuals[m][src];
+    const aL=ad.leads===''?null:+ad.leads,aP=ad.pay===''?null:+ad.pay;
+    tfL+=fd.leads;tfP+=fd.pay;if(aL!==null)taL+=aL;if(aP!==null)taP+=aP;
+    const al2p=(aL!=null&&aP!=null&&aL>0)?(aP/aL*100).toFixed(2)+'%':'—';
+    const delta=aP!==null?aP-fd.pay:null;
+    const dStr=delta===null?'—':(delta>=0?'+':'')+delta;
+    const dc=delta===null?'var(--t3)':delta>=0?'var(--green)':'var(--red)';
+    const pct=aP!==null&&fd.pay>0?aP/fd.pay:null;
+    let badge='<span class="badge b-empty">—</span>';
+    if(pct!==null) badge=pct>=1?'<span class="badge b-ahead">↑ Ahead</span>':pct>=0.9?'<span class="badge b-close">~ Close</span>':'<span class="badge b-behind">↓ Behind</span>';
+    const lc=document.getElementById('lc-'+src),dc2=document.getElementById('dc-'+src),sc=document.getElementById('sc-'+src);
+    if(lc) lc.innerHTML=`<span style="color:${CLR[src]}">${al2p}</span>`;
+    if(dc2) dc2.innerHTML=`<span class="delta" style="color:${dc}">${dStr}</span>`;
+    if(sc) sc.innerHTML=badge;
+  });
+  const totDelta=taP-tfP;const tdc=totDelta>=0?'var(--green)':'var(--red)';
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const setH=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v;};
+  set('tot-fl',tfL.toLocaleString());set('tot-fp',tfP.toLocaleString());
+  set('tot-al',taL>0?taL.toLocaleString():'—');set('tot-ap',taP>0?taP.toLocaleString():'—');
+  set('tot-l2p',taL>0&&taP>0?(taP/taL*100).toFixed(2)+'%':'—');
+  setH('tot-delta',taP>0?`<span style="color:${tdc}">${(totDelta>=0?'+':'')+totDelta}</span>`:'—');
+  setH('tot-pct',taP>0?`<span style="color:${tdc}">${(taP/tfP*100).toFixed(0)}% of fcst</span>`:'—');
+}
+
+/* ── ACTUALS COMPARISON ─────────────────*/
+let compView = 'cumulative'; // 'cumulative' | 'current'
+
+function setCompView(v){
+  compView = v;
+  document.querySelectorAll('.cv-btn').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  updActComp();
+}
+
+function updActComp(){
+  const fc=forecast();
+  const filled=FMON.filter((_,i)=>hasData(i));
+  const sec=document.getElementById('comp-section');
+  if(filled.length===0){sec.innerHTML='<div class="empty-msg">Enter data for at least one month above to see the live comparison dashboard.</div>';return;}
+
+  // Determine months to aggregate
+  const viewMonths = compView==='current'
+    ? [FMON[selMonth]].filter(m=>hasData(FMON.indexOf(m)))
+    : filled;
+
+  if(viewMonths.length===0){
+    sec.innerHTML='<div class="empty-msg">No data for the selected month. Switch to Cumulative or enter data for this month.</div>';
+    return;
+  }
+
+  let tfP=0,taP=0,tfR=0,taR=0;
+  const sF={},sA={},sAL={},sFL={};SRCS.forEach(s=>{sF[s]=0;sA[s]=0;sAL[s]=0;sFL[s]=0;});
+  viewMonths.forEach(m=>{
+    const mi=FMON.indexOf(m);
+    SRCS.forEach(s=>{
+      sF[s]+=fc[s][mi].pay;sFL[s]+=fc[s][mi].leads;tfP+=fc[s][mi].pay;tfR+=fc[s][mi].rev;
+      const ap=actuals[m][s].pay,al=actuals[m][s].leads;
+      if(ap!==''){sA[s]+=+ap;taP+=+ap;taR+=+ap*PER_SALE;}
+      if(al!=='')sAL[s]+=+al;
+    });
+  });
+  const pct=tfP>0?taP/tfP*100:0;
+  const revGap=tfR-taR;
+  const pc=pct>=100?'var(--green)':pct>=80?'var(--amber)':'var(--red)';
+  const ac=activeSc==='bear'?'var(--bear)':activeSc==='bull'?'var(--bull)':'var(--base)';
+
+  const compMons=viewMonths;
+  const fcstMon=compMons.map(m=>{const mi=FMON.indexOf(m);return SRCS.reduce((a,s)=>a+fc[s][mi].pay,0);});
+  const actMon=compMons.map(m=>SRCS.reduce((a,s)=>{const ap=actuals[m][s].pay;return a+(ap!==''?+ap:0);},0));
+
+  // ── Smart improvement guide ────────────────────────────────────────────────
+  const imprCards=SRCS.map(s=>{
+    const fp=sF[s],ap=sA[s],fl=sFL[s],al=sAL[s];
+    if(fp===0&&ap===0)return'';
+    const p=fp>0?ap/fp*100:0;
+    const gap=fp-ap;
+    const bc=p>=100?'b-ahead':p>=80?'b-close':'b-behind';
+    const bt=p>=100?'↑ Ahead':p>=80?'~ Close':'↓ Behind';
+    const bord=p>=100?'rgba(52,211,153,0.25)':p>=80?'rgba(251,191,36,0.25)':'rgba(248,113,113,0.25)';
+
+    let hint='';
+    if(p>=100){
+      hint=`${ap-fp>=0?'+':''}${ap-fp} vs forecast · Keep it up!`;
+    } else if(al===0){
+      hint=`Gap: ${gap} payments · Enter lead count to get precise improvement guidance.`;
+    } else {
+      const actL2P   = ap/al*100;
+      const fcstL2P  = l2p[s];
+      const leadsDrop = fl>0 ? (al/fl*100) : 100;    // % of expected leads received
+      const l2pDrop  = actL2P/fcstL2P*100;            // % of expected L2P achieved
+
+      const leadsOk  = leadsDrop >= 90;
+      const l2pOk    = l2pDrop   >= 90;
+
+      if(!leadsOk && !l2pOk){
+        // Both are issues
+        const moreLeadsNeeded = Math.max(0, fl - al);
+        const l2pNeeded = (ap+gap)/al*100;
+        hint=`Both need improvement:<br>`+
+          `• <b>Leads:</b> got ${al.toLocaleString()} vs ${fl.toLocaleString()} expected — bring in <b>+${moreLeadsNeeded.toLocaleString()}</b> more leads<br>`+
+          `• <b>L2P:</b> actual ${actL2P.toFixed(2)}% vs forecast ${fcstL2P.toFixed(2)}% — raise to <b>${l2pNeeded.toFixed(2)}%</b> to close gap`;
+      } else if(!leadsOk){
+        // Lead volume is the problem
+        const moreLeadsNeeded = Math.ceil(gap / (actL2P/100));
+        hint=`<b>Lead volume is the issue.</b> L2P is healthy (${actL2P.toFixed(2)}% ≈ forecast ${fcstL2P.toFixed(2)}%).<br>`+
+          `Got ${al.toLocaleString()} leads vs ${fl.toLocaleString()} expected. `+
+          `Need <b>+${moreLeadsNeeded.toLocaleString()} more leads</b> at current L2P to close the ${gap}-payment gap.`;
+      } else if(!l2pOk){
+        // L2P conversion is the problem
+        const l2pNeeded = ((ap+gap)/al*100).toFixed(2);
+        hint=`<b>Conversion rate (L2P) is the issue.</b> Lead volume is fine (${al.toLocaleString()} ≈ ${fl.toLocaleString()} expected).<br>`+
+          `Actual L2P: ${actL2P.toFixed(2)}% vs forecast ${fcstL2P.toFixed(2)}%. `+
+          `Raise L2P to <b>${l2pNeeded}%</b> to close the ${gap}-payment gap.`;
+      } else {
+        // Both are fine individually but still a gap — rounding / small delta
+        hint=`Small gap of ${gap} payments. Both lead count and L2P are within 10% of forecast — minor fluctuation.`;
+      }
+    }
+
+    return`<div class="impr-card" style="border-color:${bord}">
+      <div class="impr-src"><span class="pip" style="background:${CLR[s]}"></span><span class="impr-name">${SL[s]}</span><span class="badge ${bc}" style="margin-left:auto">${bt}</span></div>
+      <div class="impr-stat">Forecast: <b>${fp}</b> &nbsp;·&nbsp; Actual: <b>${ap}</b> &nbsp;·&nbsp; <b>${p.toFixed(0)}%</b> achieved</div>
+      <div class="impr-hint">${hint}</div>
+    </div>`;
+  }).join('');
+
+  const totAL=Object.values(sAL).reduce((a,v)=>a+v,0);
+  const detailRows=SRCS.map(s=>{
+    const fp=sF[s],ap=sA[s],fl=sFL[s],al=sAL[s],d=ap-fp;
+    const dc=d>=0?'var(--green)':'var(--red)';
+    const aL2P=al>0?(ap/al*100).toFixed(2)+'%':'—';
+    return`<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="pip" style="background:${CLR[s]}"></span>${SL[s]}</span></td>
+      <td>${fl.toLocaleString()}</td><td>${al>0?al.toLocaleString():'—'}</td>
+      <td>${fp.toLocaleString()}</td><td>${ap.toLocaleString()}</td>
+      <td style="color:${CLR[s]}">${l2p[s].toFixed(2)}%</td>
+      <td style="color:${CLR[s]}">${aL2P}</td>
+      <td style="color:${dc}">${d>=0?'+':''}${d}</td>
+      <td style="color:${dc}">${d>=0?'+':'-'} ₹${(Math.abs(d*PER_SALE)/1e5).toFixed(1)}L</td>
+    </tr>`;
+  }).join('');
+
+  const viewLabel = compView==='current'
+    ? `Current month · ${FMON[selMonth]}`
+    : `Cumulative · ${viewMonths.length} month(s) entered`;
+
+  sec.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <p style="font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin:0">${viewLabel}</p>
+      <div style="display:flex;gap:4px">
+        <button class="cv-btn vbtn${compView==='cumulative'?' on':''}" data-v="cumulative" onclick="setCompView('cumulative')">Cumulative</button>
+        <button class="cv-btn vbtn${compView==='current'?' on':''}" data-v="current" onclick="setCompView('current')">Current month</button>
+      </div>
+    </div>
+    <div class="grid4" style="margin-bottom:14px">
+      <div class="mcard" style="--accent:${ac}"><p class="ml">Forecast Payments</p><p class="mv" style="color:${ac}">${tfP.toLocaleString()}</p><p class="ms">${viewLabel.split('·')[0].trim()}</p></div>
+      <div class="mcard" style="--accent:${pc}"><p class="ml">Actual Payments</p><p class="mv" style="color:${pc}">${taP.toLocaleString()}</p><p class="ms">entered so far</p></div>
+      <div class="mcard" style="--accent:${pc}"><p class="ml">Achievement</p><p class="mv" style="color:${pc}">${pct.toFixed(1)}%</p><p class="ms">of forecast</p><div class="pbar-wrap"><div class="pbar" style="width:${Math.min(100,pct).toFixed(0)}%;background:${pc}"></div></div></div>
+      <div class="mcard" style="--accent:${revGap>0?'var(--red)':'var(--green)'}"><p class="ml">Revenue Gap</p><p class="mv" style="color:${revGap>0?'var(--red)':'var(--green)'}">${revGap>0?'−':'+'}₹${(Math.abs(revGap)/1e5).toFixed(1)}L</p><p class="ms">${revGap>0?'behind':'ahead of'} forecast</p></div>
+    </div>
+
+    <div class="two-charts">
+      <div class="chart-card"><div class="chart-card-title">Monthly · Forecast vs Actual payments</div><div style="position:relative;height:210px"><canvas id="ac-mon"></canvas></div></div>
+      <div class="chart-card"><div class="chart-card-title">Source · Forecast vs Actual payments</div><div style="position:relative;height:210px"><canvas id="ac-src"></canvas></div></div>
+    </div>
+
+    <p style="font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Source-wise performance &amp; improvement guide</p>
+    <div class="impr-grid" style="margin-bottom:16px">${imprCards}</div>
+
+    <div class="tbl-wrap">
+      <table class="dtable" style="min-width:680px">
+        <thead><tr>
+          <th style="text-align:left">Source</th>
+          <th>Fcst Leads</th><th>Act Leads</th><th>Fcst Pays</th><th>Act Pays</th>
+          <th>Fcst L2P</th><th>Act L2P</th><th>Δ Pays</th><th>Rev Gap</th>
+        </tr></thead>
+        <tbody>${detailRows}</tbody>
+        <tfoot><tr>
+          <td>Total</td>
+          <td>${Object.values(sFL).reduce((a,v)=>a+v,0).toLocaleString()}</td>
+          <td>${totAL>0?totAL.toLocaleString():'—'}</td>
+          <td>${tfP.toLocaleString()}</td>
+          <td style="color:${pc}">${taP.toLocaleString()}</td>
+          <td>—</td>
+          <td style="color:${pc}">${totAL>0&&taP>0?(taP/totAL*100).toFixed(2)+'%':'—'}</td>
+          <td style="color:${pc}">${(taP-tfP)>=0?'+':''}${taP-tfP}</td>
+          <td style="color:${revGap>0?'var(--red)':'var(--green)'}">${revGap>0?'−':'+'}₹${(Math.abs(revGap)/1e5).toFixed(1)}L</td>
+        </tr></tfoot>
+      </table>
+    </div>`;
+
+  setTimeout(()=>{
+    const monEl=document.getElementById('ac-mon'),srcEl=document.getElementById('ac-src');
+    if(!monEl||!srcEl)return;
+    if(aMonChart)aMonChart.destroy();
+    aMonChart=new Chart(monEl,{type:'bar',
+      data:{labels:compMons,datasets:[
+        {label:'Forecast',data:fcstMon,backgroundColor:'rgba(91,143,249,0.2)',borderColor:'#5b8ff9',borderWidth:1.5},
+        {label:'Actual',data:actMon,backgroundColor:'rgba(52,211,153,0.75)'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9898a8',font:{size:10}}}},
+        scales:{x:{ticks:{color:'#5a5a6a',font:{size:10}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#5a5a6a',font:{size:10,family:'DM Mono'}},grid:{color:'rgba(255,255,255,0.04)'}}}}
+    });
+    if(aSrcChart)aSrcChart.destroy();
+    aSrcChart=new Chart(srcEl,{type:'bar',
+      data:{labels:SRCS.map(s=>SL[s]),datasets:[
+        {label:'Forecast',data:SRCS.map(s=>sF[s]),backgroundColor:'rgba(91,143,249,0.2)',borderColor:'#5b8ff9',borderWidth:1.5},
+        {label:'Actual',data:SRCS.map(s=>sA[s]),backgroundColor:SRCS.map(s=>CLR[s]+'BB')}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{labels:{color:'#9898a8',font:{size:10}}}},
+        scales:{x:{beginAtZero:true,ticks:{color:'#5a5a6a',font:{size:10,family:'DM Mono'}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#9898a8',font:{size:10}},grid:{display:false}}}}
+    });
+  },0);
+}
+
+/* ── CLEAR ───────────────────────────────*/
+function clearMonth(){
+  const m=FMON[selMonth];SRCS.forEach(s=>{actuals[m][s]={leads:'',pay:''};});saveAct();updActuals();
+}
+function clearAll(){
+  if(!confirm('Clear ALL entered actuals? This cannot be undone.'))return;
+  FMON.forEach(m=>SRCS.forEach(s=>{actuals[m][s]={leads:'',pay:''};}));
+  try{localStorage.removeItem('lf_act_v3');}catch(e){}
+  updActuals();
+}
+
+
+/* ── REMEMBER TWEAKS ────────────────────*/
+let memOn = false;
+const MEM_KEY = 'lf_tweaks_v1';
+
+function toggleMem(on){
+  memOn = on;
+  document.getElementById('mem-lbl').textContent = 'Remember tweaks: ' + (on ? 'on' : 'off');
+  try{ localStorage.setItem('lf_mem_enabled', on ? '1' : '0'); }catch(e){}
+  if(on) saveTweaks();
+}
+
+function saveTweaks(){
+  if(!memOn) return;
+  try{
+    const state = {
+      gr: document.getElementById('gr').value,
+      sea: document.getElementById('sea').value,
+      l2p: {...l2p},
+      vols: {...vols}
+    };
+    localStorage.setItem(MEM_KEY, JSON.stringify(state));
+  }catch(e){}
+}
+
+function loadTweaks(){
+  try{
+    const enabled = localStorage.getItem('lf_mem_enabled');
+    if(enabled !== '1') return false;
+    const saved = localStorage.getItem(MEM_KEY);
+    if(!saved) return false;
+    const state = JSON.parse(saved);
+    memOn = true;
+    const chk = document.getElementById('mem-chk');
+    if(chk){ chk.checked = true; }
+    document.getElementById('mem-lbl').textContent = 'Remember tweaks: on';
+    if(state.gr  !== undefined) document.getElementById('gr').value  = state.gr;
+    if(state.sea !== undefined) document.getElementById('sea').value = state.sea;
+    if(state.l2p) SRCS.forEach(s=>{ if(state.l2p[s]!==undefined){ l2p[s]=parseFloat(state.l2p[s]); const sl=document.getElementById('l2p-'+s),vl=document.getElementById('l2pv-'+s); if(sl)sl.value=l2p[s]; if(vl)vl.textContent=l2p[s].toFixed(2)+'%'; }});
+    if(state.vols) SRCS.forEach(s=>{ if(state.vols[s]!==undefined){ vols[s]=parseInt(state.vols[s]); const el=document.querySelector('#vol-grid [data-src="'+s+'"]'); if(el)el.value=vols[s]; }});
+    return true;
+  }catch(e){ return false; }
+}
+
+
+/* ── SHEET CONNECTOR ─────────────────────*/
+let autoRefreshTimer = null;
+const SHEET_URL_KEY = 'lf_sheet_url';
+
+const MON_ALIASES = {
+  // Apr 26
+  'apr 26':'Apr 26','april 26':'Apr 26','apr-26':'Apr 26','apr2026':'Apr 26','april 2026':'Apr 26','04-2026':'Apr 26','4-2026':'Apr 26','04/2026':'Apr 26',
+  // May 26
+  'may 26':'May 26','may-26':'May 26','may2026':'May 26','may 2026':'May 26','05-2026':'May 26','5-2026':'May 26','05/2026':'May 26',
+  // Jun 26
+  'jun 26':'Jun 26','june 26':'Jun 26','jun-26':'Jun 26','jun2026':'Jun 26','june 2026':'Jun 26','06-2026':'Jun 26','6-2026':'Jun 26','06/2026':'Jun 26',
+  // Jul 26
+  'jul 26':'Jul 26','july 26':'Jul 26','jul-26':'Jul 26','jul2026':'Jul 26','july 2026':'Jul 26','07-2026':'Jul 26','7-2026':'Jul 26','07/2026':'Jul 26',
+  // Aug 26
+  'aug 26':'Aug 26','august 26':'Aug 26','aug-26':'Aug 26','aug2026':'Aug 26','august 2026':'Aug 26','08-2026':'Aug 26','8-2026':'Aug 26','08/2026':'Aug 26',
+  // Sep 26
+  'sep 26':'Sep 26','sept 26':'Sep 26','sep-26':'Sep 26','sep2026':'Sep 26','september 2026':'Sep 26','09-2026':'Sep 26','9-2026':'Sep 26','09/2026':'Sep 26',
+  // Oct 26
+  'oct 26':'Oct 26','october 26':'Oct 26','oct-26':'Oct 26','oct2026':'Oct 26','october 2026':'Oct 26','10-2026':'Oct 26','10/2026':'Oct 26',
+  // Nov 26
+  'nov 26':'Nov 26','november 26':'Nov 26','nov-26':'Nov 26','nov2026':'Nov 26','november 2026':'Nov 26','11-2026':'Nov 26','11/2026':'Nov 26',
+  // Dec 26
+  'dec 26':'Dec 26','december 26':'Dec 26','dec-26':'Dec 26','dec2026':'Dec 26','december 2026':'Dec 26','12-2026':'Dec 26','12/2026':'Dec 26'
+};
+const SRC_ALIASES = {
+  'web':'web','website':'web',
+  'cold-calls':'cold-calls','cold calls':'cold-calls','coldcalls':'cold-calls','cold call':'cold-calls','cold_calls':'cold-calls',
+  'int':'int','internal':'int','inbound':'int',
+  'comms':'comms','communications':'comms',
+  'ama rec':'ama rec','ama_rec':'ama rec','amarec':'ama rec','ama-rec':'ama rec','ama rec.':'ama rec',
+  'ama l':'ama l','ama_l':'ama l','amal':'ama l','ama-l':'ama l','ama l.':'ama l',
+  'apxor':'apxor',
+  'misc':'misc','miscellaneous':'misc','misc (lr+r)':'misc','lr+r':'misc','lead request':'misc','retained':'misc','misc(lr+r)':'misc'
+};
+
+function normMonth(r){
+  const k=(r||'').toLowerCase().trim().replace(/\s+/g,' ');
+  return MON_ALIASES[k]||null;
+}
+function normSrc(r){
+  const k=(r||'').toLowerCase().trim().replace(/\s+/g,' ');
+  return SRC_ALIASES[k]||null;
+}
+
+function toggleSheetPanel(){ document.getElementById('sheet-panel').classList.toggle('sheet-collapsed'); }
+
+function saveSheetUrl(){ try{ localStorage.setItem(SHEET_URL_KEY, document.getElementById('sheet-url').value.trim()); }catch(e){} }
+function loadSheetUrl(){ try{ const u=localStorage.getItem(SHEET_URL_KEY); if(u) document.getElementById('sheet-url').value=u; }catch(e){} }
+
+function setSheetStatus(type, msg){
+  const el=document.getElementById('sheet-status'), dot=document.getElementById('sheet-dot');
+  el.className='sheet-status ss-'+type; el.textContent=msg;
+  dot.className='sheet-dot'+(type==='ok'?' ok':type==='err'?' err':'');
+}
+
+function addLog(msg, cls){
+  const log=document.getElementById('fetch-log');
+  if(!log) return;
+  const line=document.createElement('div');
+  line.className='log-line '+(cls||'');
+  line.textContent=msg;
+  log.appendChild(line);
+  log.scrollTop=log.scrollHeight;
+}
+function clearLog(){ const l=document.getElementById('fetch-log'); if(l) l.innerHTML=''; }
+
+/* Proper RFC-4180 CSV parser — handles quoted fields with commas inside */
+function parseCSVRows(text){
+  const rows=[];
+  let cur='', inQ=false, row=[];
+  for(let i=0;i<text.length;i++){
+    const c=text[i], next=text[i+1];
+    if(inQ){
+      if(c==='"'&&next==='"'){ cur+='"'; i++; }
+      else if(c==='"'){ inQ=false; }
+      else { cur+=c; }
+    } else {
+      if(c==='"'){ inQ=true; }
+      else if(c===','){ row.push(cur.trim()); cur=''; }
+      else if(c==='\n'||(c==='\r'&&next==='\n')){ if(c==='\r') i++; row.push(cur.trim()); rows.push(row); row=[]; cur=''; }
+      else if(c==='\r'){ row.push(cur.trim()); rows.push(row); row=[]; cur=''; }
+      else { cur+=c; }
+    }
+  }
+  if(cur!==''||row.length) row.push(cur.trim()), rows.push(row);
+  return rows.filter(r=>r.some(c=>c!==''));
+}
+
+function parseCSV(text){
+  const rows = parseCSVRows(text);
+  if(rows.length<2) throw new Error('Sheet has fewer than 2 rows');
+
+  // Show first 3 rows in log for debugging
+  addLog('── CSV preview (first 3 data rows) ──');
+  rows.slice(0,4).forEach((r,i)=>addLog((i===0?'HDR: ':'R'+i+': ')+r.join(' | ')));
+  addLog('─────────────────────────────────────');
+
+  const header=rows[0].map(h=>h.toLowerCase().replace(/['"]/g,'').trim());
+  const iMonth=header.findIndex(h=>h.includes('month'));
+  const iSrc  =header.findIndex(h=>h.includes('source')||h.includes('channel'));
+  const iLeads=header.findIndex(h=>h.includes('lead'));
+  const iPay  =header.findIndex(h=>h.includes('pay'));
+  // Consumed column — optional, feeds Sales Funnel tab
+  const iCons =header.findIndex(h=>h.includes('consum')||h==='consumed'||h==='consumption'||h==='called');
+
+  addLog('Columns detected — Month:'+iMonth+' Source:'+iSrc+' Leads:'+iLeads+' Pays:'+iPay+(iCons>=0?' Consumed:'+iCons:' (no Consumed col)'));
+
+  if(iMonth<0||iSrc<0) throw new Error('Cannot find Month or Source column. Headers found: '+header.join(', '));
+  if(iLeads<0&&iPay<0) throw new Error('Cannot find Leads or Payments column. Headers found: '+header.join(', '));
+
+  let imported=0, skipped=[], skipReasons={}, consImported=0;
+  for(let i=1;i<rows.length;i++){
+    const row=rows[i];
+    const rawMon=(row[iMonth]||'').trim();
+    const rawSrc=(row[iSrc]||'').trim();
+    const mon=normMonth(rawMon);
+    const src=normSrc(rawSrc);
+    if(!rawMon&&!rawSrc) continue; // blank row
+    if(!mon){
+      const reason='Unrecognised month: "'+rawMon+'"';
+      skipReasons[reason]=(skipReasons[reason]||0)+1;
+      skipped.push(i+1); continue;
+    }
+    if(!src){
+      const reason='Unrecognised source: "'+rawSrc+'"';
+      skipReasons[reason]=(skipReasons[reason]||0)+1;
+      skipped.push(i+1); continue;
+    }
+    if(!FMON.includes(mon)){
+      skipReasons['Month not in forecast range: '+mon]=(skipReasons['Month not in forecast range: '+mon]||0)+1;
+      skipped.push(i+1); continue;
+    }
+    const leads=iLeads>=0&&row[iLeads]!==''?parseInt(row[iLeads])||'':actuals[mon][src].leads;
+    const pay  =iPay  >=0&&row[iPay]  !==''?parseInt(row[iPay])  ||'':actuals[mon][src].pay;
+    actuals[mon][src]={leads,pay};
+    imported++;
+
+    // If Consumed column exists, also populate sfActuals for Sales Funnel tab
+    if(iCons>=0 && row[iCons]!==''){
+      const mi = FMON.indexOf(mon);
+      if(mi>=0){
+        if(!sfActuals[mi]) sfActuals[mi]={};
+        sfActuals[mi][src] = Math.max(0, parseInt(row[iCons])||0);
+        consImported++;
+      }
+    }
+  }
+  // Log skip reasons
+  Object.entries(skipReasons).forEach(([r,n])=>addLog('  ⚠ Skipped '+n+'x — '+r,'log-err'));
+  if(consImported>0) addLog('  ✓ '+consImported+' consumption values imported → Sales Funnel tab updated','log-ok');
+  return{imported, skipped:skipped.length};
+}
+
+function applyCSVText(text){
+  const {imported,skipped}=parseCSV(text);
+  saveAct();
+  const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('sheet-last-sync').textContent='· synced '+now;
+  if(imported>0){
+    setSheetStatus('ok','✓ '+imported+' rows imported'+(skipped>0?' ('+skipped+' skipped)':''));
+    addLog('✓ '+imported+' rows imported successfully.'+(skipped>0?' '+skipped+' rows skipped — see reasons above.':''),'log-ok');
+  } else {
+    setSheetStatus('err','0 rows matched — check format below');
+    addLog('⚠ 0 rows imported. Check that Month values match (e.g. "Apr 26") and Source values match (e.g. "web", "cold-calls")','log-err');
+  }
+  updActuals();
+  updDPT();
+  if(activeTab==='consumption') updSFCharts();
+}
+
+async function tryFetch(url){
+  const PROXIES=[
+    { name:'Direct', url: url },
+    { name:'corsproxy.io', url: 'https://corsproxy.io/?'+encodeURIComponent(url) },
+    { name:'allorigins', url: 'https://api.allorigins.win/raw?url='+encodeURIComponent(url) },
+    { name:'codetabs', url: 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url) },
+  ];
+  for(const p of PROXIES){
+    addLog('Trying '+p.name+'…');
+    try{
+      const r=await fetch(p.url,{cache:'no-store',signal:AbortSignal.timeout(8000)});
+      if(!r.ok) throw new Error('HTTP '+r.status+' '+r.statusText);
+      const text=await r.text();
+      if(text.trim().startsWith('<!')) throw new Error('Got HTML instead of CSV (sheet may not be published)');
+      if(text.trim().length<10) throw new Error('Empty response');
+      addLog('✓ '+p.name+' succeeded','log-ok');
+      return text;
+    } catch(e){
+      addLog('✗ '+p.name+' failed: '+e.message,'log-err');
+    }
+  }
+  throw new Error('All fetch methods failed — use "Paste CSV" tab below');
+}
+
+async function fetchSheet(){
+  const url=document.getElementById('sheet-url').value.trim();
+  if(!url){ setSheetStatus('err','paste a URL first'); return; }
+  saveSheetUrl();
+  clearLog();
+  const btn=document.getElementById('fetch-btn');
+  btn.disabled=true; btn.textContent='⏳ Fetching…';
+  setSheetStatus('loading','trying to fetch…');
+  // show log
+  document.getElementById('fetch-log-wrap').style.display='block';
+  try{
+    const text=await tryFetch(url);
+    applyCSVText(text);
+  } catch(e){
+    setSheetStatus('err','✗ '+e.message);
+    addLog('⚠ '+e.message,'log-err');
+  } finally{
+    btn.disabled=false; btn.textContent='↻ Fetch now';
+  }
+}
+
+function applyPastedCSV(){
+  const txt=document.getElementById('paste-area').value.trim();
+  if(!txt){ alert('Paste your CSV content first.'); return; }
+  clearLog();
+  document.getElementById('fetch-log-wrap').style.display='block';
+  try{
+    applyCSVText(txt);
+  } catch(e){
+    setSheetStatus('err','✗ '+e.message);
+    addLog('✗ Parse error: '+e.message,'log-err');
+  }
+}
+
+function switchConnTab(t){
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.getElementById('ct-url').style.display=t==='url'?'':'none';
+  document.getElementById('ct-paste').style.display=t==='paste'?'':'none';
+}
+
+function toggleAutoRefresh(on){
+  if(autoRefreshTimer){clearInterval(autoRefreshTimer);autoRefreshTimer=null;}
+  if(on){
+    const s=parseInt(document.getElementById('refresh-interval').value)||60;
+    autoRefreshTimer=setInterval(fetchSheet,s*1000);
+  }
+  try{localStorage.setItem('lf_auto_refresh',on?'1':'0');localStorage.setItem('lf_refresh_interval',document.getElementById('refresh-interval').value);}catch(e){}
+}
+
+function clearSheetData(){
+  if(!confirm('Disconnect sheet? Clears all imported actuals.')) return;
+  document.getElementById('sheet-url').value='';
+  try{localStorage.removeItem(SHEET_URL_KEY);}catch(e){}
+  if(autoRefreshTimer){clearInterval(autoRefreshTimer);autoRefreshTimer=null;}
+  document.getElementById('auto-chk').checked=false;
+  setSheetStatus('idle','not connected');
+  document.getElementById('sheet-last-sync').textContent='';
+  document.getElementById('sheet-dot').className='sheet-dot';
+  FMON.forEach(m=>SRCS.forEach(s=>{actuals[m][s]={leads:'',pay:''}}));
+  saveAct(); updActuals();
+}
+
+function restoreSheetUI(){
+  loadSheetUrl();
+  try{
+    const auto=localStorage.getItem('lf_auto_refresh');
+    const interval=localStorage.getItem('lf_refresh_interval');
+    if(interval) document.getElementById('refresh-interval').value=interval;
+    if(auto==='1'){document.getElementById('auto-chk').checked=true;toggleAutoRefresh(true);}
+    const storedUrl=localStorage.getItem(SHEET_URL_KEY);
+    if(storedUrl && storedUrl===document.getElementById('sheet-url').value){
+      setSheetStatus('ok','connected · click Fetch to refresh');
+      document.getElementById('sheet-dot').className='sheet-dot ok';
+    }
+  }catch(e){}
+}
+
+
+/* ── DAY PROGRESS TRACKER ───────────────────────────────────────────
+   DAY_CUM[source][day-1] = cumulative % of monthly leads that
+   have arrived by end of that day, based on Oct 2025–Mar 2026 actuals.
+   'misc' has no history so we use a linear distribution.
+──────────────────────────────────────────────────────────────────── */
+const DAY_CUM = {
+  'web':        [4.3,9.2,13.7,17.6,22.5,26.8,30.9,34.6,38.5,42.0,45.5,49.0,52.5,55.4,58.8,61.9,65.1,68.3,71.5,74.0,76.7,79.5,82.2,84.8,87.4,89.8,92.4,94.8,97.2,99.1,100.0],
+  'cold-calls': [9.0,19.3,27.9,37.7,48.3,54.0,60.3,65.0,67.9,70.7,75.6,79.1,81.3,83.6,84.7,85.8,88.7,90.6,92.0,93.1,94.0,94.6,94.6,95.2,96.2,97.8,98.6,99.7,99.9,100.0,100.0],
+  'int':        [4.4,8.7,14.0,18.0,22.5,26.6,30.4,33.9,37.8,41.0,44.2,47.7,51.2,54.1,57.2,60.0,63.4,66.3,69.4,72.6,75.4,78.2,81.0,84.0,86.6,89.8,93.0,95.3,97.4,99.3,100.0],
+  'comms':      [3.5,9.8,14.1,19.2,23.9,28.3,30.8,34.0,38.6,39.9,43.7,45.6,46.9,50.7,51.9,56.3,57.3,68.0,76.1,77.1,77.4,78.7,79.8,87.0,92.4,96.2,98.4,98.8,99.6,99.9,100.0],
+  'ama rec':    [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.3,15.1,34.4,46.6,47.7,50.3,59.1,59.1,62.9,66.9,74.3,76.2,89.3,90.4,91.1,93.3,96.7,98.1,98.1,99.4,99.6,99.6,100.0],
+  'ama l':      [0.0,0.0,0.0,12.3,24.8,26.2,38.1,48.5,49.9,54.8,63.2,64.1,70.5,87.7,97.3,97.3,98.9,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],
+  'apxor':      [0.0,9.9,9.9,9.9,14.3,22.6,29.4,31.9,35.4,37.9,43.9,51.3,63.4,65.2,65.2,67.9,71.4,78.3,81.4,85.7,87.0,87.8,94.8,94.8,95.2,98.1,98.8,100.0,100.0,100.0,100.0],
+  'misc':       [3.2,6.5,9.7,12.9,16.1,19.4,22.6,25.8,29.0,32.3,35.5,38.7,41.9,45.2,48.4,51.6,54.8,58.1,61.3,64.5,67.7,71.0,74.2,77.4,80.6,83.9,87.1,90.3,93.5,96.8,100.0],
+  // overall for summary row
+  'overall':    [5.1,11.1,16.4,21.8,28.0,32.6,37.2,41.2,44.6,48.2,52.7,56.4,59.7,62.9,65.8,68.2,71.3,74.4,77.3,79.5,81.9,84.0,86.0,88.1,90.3,92.6,94.7,96.6,98.2,99.4,100.0]
+};
+
+function getDayCum(src, day){
+  const arr = DAY_CUM[src] || DAY_CUM['overall'];
+  const idx = Math.min(Math.max(day-1, 0), 30);
+  return arr[idx];
+}
+
+function buildDPTMonthSelect(){
+  const sel = document.getElementById('dpt-month');
+  if(!sel || sel.options.length > 0) return;
+  FMON.forEach((m,i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = m;
+    sel.appendChild(opt);
+  });
+}
+
+function updDPT(){
+  buildDPTMonthSelect();
+  const sel   = document.getElementById('dpt-month');
+  const dayEl = document.getElementById('dpt-day');
+  if(!sel||!dayEl) return;
+  const mi  = parseInt(sel.value);
+  const day = parseInt(dayEl.value);
+  const mon = FMON[mi];
+  document.getElementById('dpt-day-num').textContent = day;
+
+  const overallPct = DAY_CUM['overall'][Math.min(day-1,30)];
+  document.getElementById('dpt-overall-pct').textContent = '≈ '+overallPct.toFixed(0)+'% of month elapsed';
+
+  const fc = forecast();
+  let totFcstL=0,totFcstP=0,totExpL=0,totExpP=0,totActL=0,totActP=0;
+  let hasAny = false;
+
+  /* status badge helper */
+  function statusBadge(actual, expected, label){
+    if(actual===null) return '<span style="color:var(--t3);font-size:10px">no data</span>';
+    const ratio = expected > 0 ? actual/expected : 1;
+    if(ratio >= 1)    return `<span class="ontrack-badge ot-ok">↑ Ahead</span><span style="font-size:10px;color:var(--t3);margin-left:3px">${actual.toLocaleString()}</span>`;
+    if(ratio >= 0.85) return `<span class="ontrack-badge ot-warn">~ Close</span><span style="font-size:10px;color:var(--t3);margin-left:3px">${actual.toLocaleString()}</span>`;
+    return `<span class="ontrack-badge ot-behind">↓ Behind</span><span style="font-size:10px;color:var(--t3);margin-left:3px">${actual.toLocaleString()}</span>`;
+  }
+
+  const rows = SRCS.map(src => {
+    const fd   = fc[src][mi];
+    const pct  = getDayCum(src, day);
+    const expL = Math.round(fd.leads * pct / 100);
+    const expP = Math.round(fd.pay   * pct / 100);
+
+    // Read actuals from the actuals object (populated from Actuals tab / Google Sheet)
+    const ad   = actuals[mon] && actuals[mon][src] ? actuals[mon][src] : {leads:'',pay:''};
+    const actL = ad.leads !== '' ? +ad.leads : null;
+    const actP = ad.pay   !== '' ? +ad.pay   : null;
+
+    totFcstL += fd.leads; totFcstP += fd.pay;
+    totExpL  += expL;     totExpP  += expP;
+    if(actL !== null){ totActL += actL; hasAny = true; }
+    if(actP !== null){ totActP += actP; }
+
+    const barW = Math.round(pct);
+    const barC = pct >= 60 ? '#34d399' : pct >= 35 ? '#fbbf24' : '#f97b5b';
+
+    // Actual cell — show value or dim placeholder
+    const actLCell = actL !== null
+      ? `<b style="color:#f0f0f2">${actL.toLocaleString()}</b>`
+      : `<span style="color:var(--t3);font-size:10px">—</span>`;
+    const actPCell = actP !== null
+      ? `<b style="color:#f0f0f2">${actP.toLocaleString()}</b>`
+      : `<span style="color:var(--t3);font-size:10px">—</span>`;
+
+    return `<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:7px">
+        <span class="pip" style="background:${CLR[src]}"></span>${SL[src]}
+      </span></td>
+      <td>${fd.leads.toLocaleString()}</td>
+      <td>
+        <b style="color:${CLR[src]}">${expL.toLocaleString()}</b>
+        <div class="dpbar-wrap"><div class="dpbar" style="width:${barW}%;background:${barC}"></div></div>
+        <span style="font-size:9px;color:var(--t3)">${pct.toFixed(0)}% of month</span>
+      </td>
+      <td>${actLCell}</td>
+      <td>${statusBadge(actL, expL, 'leads')}</td>
+      <td>${fd.pay.toLocaleString()}</td>
+      <td><b style="color:${CLR[src]}">${expP.toLocaleString()}</b></td>
+      <td>${actPCell}</td>
+      <td>${statusBadge(actP, expP, 'pays')}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('dpt-tbody').innerHTML = rows;
+
+  // Footer totals
+  const overallExpPct = totFcstL > 0 ? (totExpL/totFcstL*100).toFixed(0) : 0;
+  const totLRatio = totExpL > 0 && hasAny ? totActL/totExpL : null;
+  const totPRatio = totExpP > 0 && hasAny ? totActP/totExpP : null;
+  const totLColor = totLRatio===null?'var(--t3)':totLRatio>=1?'#34d399':totLRatio>=0.85?'#fbbf24':'#f87171';
+  const totPColor = totPRatio===null?'var(--t3)':totPRatio>=1?'#34d399':totPRatio>=0.85?'#fbbf24':'#f87171';
+
+  document.getElementById('dpt-tfoot').innerHTML = `<tr>
+    <td>Total</td>
+    <td>${totFcstL.toLocaleString()}</td>
+    <td>
+      <b style="color:var(--base)">${totExpL.toLocaleString()}</b>
+      <span style="font-size:9px;color:var(--t3);display:block">${overallExpPct}% of month</span>
+    </td>
+    <td style="color:${totLColor}">${hasAny ? totActL.toLocaleString() : '—'}</td>
+    <td style="color:${totLColor}">${totLRatio!==null?(totLRatio>=1?'↑ Ahead':totLRatio>=0.85?'~ Close':'↓ Behind'):'—'}</td>
+    <td>${totFcstP.toLocaleString()}</td>
+    <td><b style="color:var(--base)">${totExpP.toLocaleString()}</b></td>
+    <td style="color:${totPColor}">${hasAny ? totActP.toLocaleString() : '—'}</td>
+    <td style="color:${totPColor}">${totPRatio!==null?(totPRatio>=1?'↑ Ahead':totPRatio>=0.85?'~ Close':'↓ Behind'):'—'}</td>
+  </tr>`;
+
+  // Insight line
+  const daysLeft = 30 - day;
+  const remainL  = totFcstL - totExpL;
+  const remainP  = totFcstP - totExpP;
+  const actNote  = hasAny
+    ? `Actual so far: <b style="color:#f0f0f2">${totActL.toLocaleString()} leads</b> / <b style="color:#f0f0f2">${totActP.toLocaleString()} payments</b> — `+
+      (totPRatio!==null&&totPRatio>=1?'<span style="color:#34d399">↑ Ahead of pace</span>':totPRatio!==null&&totPRatio>=0.85?'<span style="color:#fbbf24">~ Close to pace</span>':'<span style="color:#f87171">↓ Behind pace</span>')+'. '
+    : 'No actuals entered yet for this month — go to <b style="color:var(--t1)">Actuals vs Forecast</b> tab to enter or fetch data. ';
+  document.getElementById('dpt-hint').innerHTML =
+    `By end of day <b style="color:var(--t1)">${day}</b> of ${mon}: `+
+    `<b style="color:var(--base)">${totExpL.toLocaleString()} leads</b> and `+
+    `<b style="color:var(--base)">${totExpP.toLocaleString()} payments</b> should have arrived to stay on track. `+
+    actNote+
+    `Remaining: ~${remainL.toLocaleString()} leads and ~${remainP} payments over the last ${daysLeft} days. `+
+    `<span style="color:var(--t3)">Cold Calls front-load (${DAY_CUM['cold-calls'][day-1].toFixed(0)}% by day ${day}) · `+
+    `Web (${DAY_CUM['web'][day-1].toFixed(0)}%) · AMA Rec/L burst mid-month.</span>`;
+}
+
+
+
+/* ── SALES FUNNEL / CONSUMPTION ──────────────────────────────────────────────
+   Source: Oct 2025 – Mar 2026 consumption data (first contact per lead per source)
+   CONS_MONTHLY: consumed leads per source per month (those that got first call)
+   CONS_DAY_CUM: by day D, X% of that month's consumed leads had been contacted
+   HIST_RECEIVED: leads received per source per month (from forecast sheet data)
+────────────────────────────────────────────────────────────────────────────── */
+const SF_MONTHS  = ['Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+const SF_MONTHS_KEY = ['2025-10','2025-11','2025-12','2026-01','2026-02','2026-03'];
+
+const CONS_MONTHLY = [
+  {m:'Oct 25','web':1787,'cold-calls':965,'int':617,'comms':161,'ama rec':149,'ama l':174,'apxor':67},
+  {m:'Nov 25','web':1979,'cold-calls':706,'int':733,'comms':94, 'ama rec':160,'ama l':20, 'apxor':80},
+  {m:'Dec 25','web':1598,'cold-calls':1023,'int':607,'comms':66,'ama rec':133,'ama l':79, 'apxor':53},
+  {m:'Jan 26','web':1676,'cold-calls':1060,'int':642,'comms':103,'ama rec':114,'ama l':79,'apxor':49},
+  {m:'Feb 26','web':1363,'cold-calls':814,'int':519,'comms':61,'ama rec':155,'ama l':71, 'apxor':96},
+  {m:'Mar 26','web':1159,'cold-calls':1107,'int':645,'comms':98,'ama rec':32, 'ama l':190,'apxor':115},
+];
+
+const HIST_RECEIVED = {
+  'web':        {'Oct 25':2170,'Nov 25':2344,'Dec 25':2053,'Jan 26':2031,'Feb 26':1700,'Mar 26':1483},
+  'cold-calls': {'Oct 25':1009,'Nov 25':715, 'Dec 25':1032,'Jan 26':1107,'Feb 26':818, 'Mar 26':1181},
+  'int':        {'Oct 25':727, 'Nov 25':759, 'Dec 25':686, 'Jan 26':857, 'Feb 26':632, 'Mar 26':702},
+  'comms':      {'Oct 25':183, 'Nov 25':116, 'Dec 25':90,  'Jan 26':139, 'Feb 26':67,  'Mar 26':107},
+  'ama rec':    {'Oct 25':164, 'Nov 25':164, 'Dec 25':148, 'Jan 26':120, 'Feb 26':159, 'Mar 26':34},
+  'ama l':      {'Oct 25':185, 'Nov 25':20,  'Dec 25':83,  'Jan 26':81,  'Feb 26':73,  'Mar 26':192},
+  'apxor':      {'Oct 25':75,  'Nov 25':87,  'Dec 25':62,  'Jan 26':52,  'Feb 26':98,  'Mar 26':116},
+  'misc':       {'Oct 25':0,   'Nov 25':0,   'Dec 25':0,   'Jan 26':0,   'Feb 26':0,   'Mar 26':0},
+};
+
+// Cumulative % of monthly consumption done by each day — source-wise (Oct25–Mar26)
+const CONS_DAY_CUM = {
+  'web':        [1.4,3.5,7.4,12.3,19.5,25.1,30.8,35.6,38.7,41.1,46.0,50.5,54.2,58.4,62.3,65.0,67.1,70.9,74.2,76.9,79.4,81.9,83.8,86.3,89.6,92.9,94.7,96.3,98.5,99.6,100.0],
+  'cold-calls': [8.2,18.8,27.6,37.6,48.2,54.0,60.3,65.1,68.1,71.0,76.0,79.6,81.9,84.2,85.3,86.4,89.5,91.4,92.8,93.9,94.8,95.4,95.5,96.1,97.2,98.9,99.2,99.8,100.0,100.0,100.0],
+  'int':        [1.1,2.3,5.6,9.1,14.1,18.0,22.4,27.3,29.9,32.9,37.2,40.7,44.4,47.6,51.8,54.6,57.1,61.6,65.5,70.5,73.7,77.5,80.0,82.1,86.4,91.5,94.3,96.3,98.4,99.5,100.0],
+  'comms':      [2.9,8.6,14.9,19.9,24.9,27.4,31.0,35.2,38.1,39.6,46.8,50.1,52.0,55.7,58.0,62.3,64.2,67.4,71.2,78.4,79.6,80.8,81.3,83.4,86.4,91.9,93.1,95.2,97.4,99.8,100.0],
+  'ama rec':    [0.0,0.1,0.4,2.8,6.7,7.9,8.2,9.8,10.4,11.3,18.8,29.6,39.7,47.0,50.2,54.8,58.0,60.4,64.1,66.6,78.6,83.2,85.5,88.6,91.4,95.6,97.2,98.1,99.9,100.0,100.0],
+  'ama l':      [0.2,0.3,1.3,2.6,4.6,4.9,4.9,8.3,11.4,24.3,28.7,40.5,42.4,46.3,49.4,58.6,63.1,74.2,90.4,93.8,96.2,97.2,97.7,98.2,98.7,98.9,98.9,99.7,99.8,100.0,100.0],
+  'apxor':      [0.7,0.7,0.7,1.3,2.4,3.9,5.0,7.8,8.5,10.9,15.4,23.0,33.5,38.9,45.2,48.0,52.2,58.7,63.3,69.6,72.2,76.1,78.5,80.9,85.2,90.0,93.3,95.0,98.9,100.0,100.0],
+  'misc':       [3.2,6.5,9.7,12.9,16.1,19.4,22.6,25.8,29.0,32.3,35.5,38.7,41.9,45.2,48.4,51.6,54.8,58.1,61.3,64.5,67.7,71.0,74.2,77.4,80.6,83.9,87.1,90.3,93.5,96.8,100.0],
+  'overall':    [3.1,7.2,12.1,17.8,25.1,29.9,35.1,39.7,42.5,45.4,50.3,54.9,58.5,62.1,65.3,67.9,70.4,74.1,77.4,80.3,82.8,85.0,86.5,88.4,91.2,94.4,95.9,97.3,98.9,99.7,100.0],
+};
+
+// Avg coverage benchmarks per source (Oct25–Mar26)
+const COV_BENCH = {
+  'web':88,'cold-calls':97,'int':87,'comms':83,'ama rec':94,'ama l':97,'apxor':94,'misc':100
+};
+
+// Per-source actual consumption entered by user for day-checker: {month_index: {src: value}}
+let sfActuals = {};
+
+let sfChartsBuilt = false;
+let sfCovChart, sfSrcTrendChart, sfSrcVolChart;
+
+function buildSFMonthSelect(){
+  const sel = document.getElementById('sf-month');
+  if(!sel || sel.options.length > 0) return;
+  FMON.forEach((m,i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = m;
+    sel.appendChild(opt);
+  });
+}
+
+function getSFActual(mi, src){
+  return (sfActuals[mi] && sfActuals[mi][src] !== undefined && sfActuals[mi][src] !== '')
+    ? +sfActuals[mi][src] : null;
+}
+
+function setSFActual(mi, src, val){
+  if(!sfActuals[mi]) sfActuals[mi] = {};
+  sfActuals[mi][src] = val === '' ? '' : Math.max(0, parseInt(val)||0);
+  updSFDayChecker();
+}
+
+function updSF(){
+  buildSFMonthSelect();
+  const dayEl = document.getElementById('sf-day');
+  if(!dayEl) return;
+  document.getElementById('sf-day-num').textContent = dayEl.value;
+  updSFKPIs();
+  updSFDayChecker();
+}
+
+/* ── KPI SUMMARY CARDS ─────────────────────────────────────────────────────── */
+function updSFKPIs(){
+  // Compute overall coverage for last available month (Mar 26)
+  const lastMon = CONS_MONTHLY[CONS_MONTHLY.length-1];
+  let totalRec=0, totalCons=0;
+  const SRCS7 = SRCS.filter(s=>s!=='misc');
+  SRCS7.forEach(s => {
+    totalRec  += HIST_RECEIVED[s]?.['Mar 26']||0;
+    totalCons += lastMon[s]||0;
+  });
+  const overallCov = totalRec>0 ? (totalCons/totalRec*100).toFixed(0) : '—';
+
+  // Worst and best coverage in Mar 26
+  let worstSrc='', worstPct=200, bestSrc='', bestPct=0;
+  SRCS7.forEach(s => {
+    const rec  = HIST_RECEIVED[s]?.['Mar 26']||0;
+    const cons = lastMon[s]||0;
+    if(!rec) return;
+    const pct = cons/rec*100;
+    if(pct < worstPct){ worstPct=pct; worstSrc=s; }
+    if(pct > bestPct) { bestPct=pct;  bestSrc=s; }
+  });
+
+  // Avg coverage across all sources and months
+  let sumCov=0, n=0;
+  CONS_MONTHLY.forEach(row => {
+    SRCS7.forEach(s => {
+      const rec = HIST_RECEIVED[s]?.[row.m]||0;
+      if(!rec) return;
+      sumCov += (row[s]||0)/rec*100; n++;
+    });
+  });
+  const avgCov = n>0 ? (sumCov/n).toFixed(0)+'%' : '—';
+
+  const sfKpisEl = document.getElementById('sf-kpis');
+  if(!sfKpisEl) return;
+  sfKpisEl.innerHTML = `
+    <div class="sf-kpi" style="--kc:#5b8ff9"><p class="sf-kl">Overall coverage (Mar 26)</p><p class="sf-kv" style="color:${overallCov>=90?'#34d399':overallCov>=75?'#fbbf24':'#f87171'}">${overallCov}%</p><p class="sf-ks">consumed / received</p></div>
+    <div class="sf-kpi" style="--kc:#34d399"><p class="sf-kl">Avg coverage (Oct 25–Mar 26)</p><p class="sf-kv" style="color:#34d399">${avgCov}</p><p class="sf-ks">across all sources</p></div>
+    <div class="sf-kpi" style="--kc:#f87171"><p class="sf-kl">Needs attention (Mar 26)</p><p class="sf-kv" style="color:#f87171">${SL[worstSrc]||worstSrc}</p><p class="sf-ks">${worstPct.toFixed(0)}% coverage — lowest</p></div>
+    <div class="sf-kpi" style="--kc:#52c97a"><p class="sf-kl">Best consumed (Mar 26)</p><p class="sf-kv" style="color:#52c97a">${SL[bestSrc]||bestSrc}</p><p class="sf-ks">${bestPct.toFixed(0)}% coverage — highest</p></div>
+  `;
+}
+
+/* ── DAY CHECKER ────────────────────────────────────────────────────────────── */
+function updSFDayChecker(){
+  const sel   = document.getElementById('sf-month');
+  const dayEl = document.getElementById('sf-day');
+  if(!sel||!dayEl) return;
+  const mi  = parseInt(sel.value);
+  const mon = FMON[mi];
+  const day = parseInt(dayEl.value);
+
+  // Leads received for this month from actuals tab
+  const getReceived = src => {
+    const ad = actuals[mon] && actuals[mon][src] ? actuals[mon][src] : {leads:''};
+    return ad.leads !== '' ? +ad.leads : null;
+  };
+
+  let totRec=0, totExpCons=0, totActCons=0, hasAct=false;
+
+  const rows = SRCS.map(src => {
+    if(src==='misc') return '';
+    const received = getReceived(src);
+    const dayPct   = (CONS_DAY_CUM[src]||CONS_DAY_CUM['overall'])[Math.min(day-1,30)];
+    const bench    = COV_BENCH[src]||90;
+    // Expected consumed by day N = received × bench_coverage × day_pct
+    const expCons  = received!==null ? Math.round(received * dayPct/100) : null;
+    const actCons  = getSFActual(mi, src);
+
+    if(received!==null){ totRec+=received; }
+    if(expCons!==null)  { totExpCons+=expCons; }
+    if(actCons!==null)  { totActCons+=actCons; hasAct=true; }
+
+    const ratio = (actCons!==null && expCons!==null && expCons>0) ? actCons/expCons : null;
+    let badge = `<span class="sf-badge sf-na">—</span>`;
+    if(ratio!==null){
+      badge = ratio>=1    ? `<span class="sf-badge sf-ok">↑ Ahead</span>`
+            : ratio>=0.85 ? `<span class="sf-badge sf-warn">~ On track</span>`
+            :               `<span class="sf-badge sf-bad">↓ Behind</span>`;
+    }
+    const covPct  = (actCons!==null && expCons>0) ? (actCons/expCons*100).toFixed(0)+'%' : '—';
+    const barColor= ratio===null?'#5a5a6a':ratio>=1?'#34d399':ratio>=0.85?'#fbbf24':'#f87171';
+    const barW    = ratio!==null ? Math.min(100, Math.round(ratio*100)) : 0;
+
+    return `<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="pip" style="background:${CLR[src]}"></span>${SL[src]}</span></td>
+      <td>${received!==null ? received.toLocaleString() : '<span style="color:var(--t3);font-size:10px">enter in tab 2</span>'}</td>
+      <td>
+        <span style="color:${CLR[src]};font-family:DM Mono,monospace">${dayPct.toFixed(0)}%</span>
+        <div style="height:3px;background:var(--bg4);border-radius:2px;margin-top:3px;width:50px;display:inline-block;vertical-align:middle;margin-left:4px"><div style="height:100%;width:${dayPct}%;background:${CLR[src]};border-radius:2px"></div></div>
+      </td>
+      <td style="color:var(--t1);font-weight:500">${expCons!==null ? expCons.toLocaleString() : '—'}</td>
+      <td><input class="sf-act-inp" type="text" inputmode="numeric" placeholder="—"
+        value="${actCons!==null?actCons:''}"
+        oninput="setSFActual(${mi},'${src}',this.value)"></td>
+      <td>
+        <div class="covbar">
+          <span style="font-family:DM Mono,monospace;font-size:11px;color:${barColor};min-width:32px">${covPct}</span>
+          <div class="covbar-track"><div class="covbar-fill" style="width:${barW}%;background:${barColor}"></div></div>
+        </div>
+      </td>
+      <td>${badge}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+
+  document.getElementById('sf-day-tbody').innerHTML = rows;
+
+  // Totals footer
+  const totRatio = (hasAct && totExpCons>0) ? totActCons/totExpCons : null;
+  const totColor = totRatio===null?'var(--t3)':totRatio>=1?'#34d399':totRatio>=0.85?'#fbbf24':'#f87171';
+  document.getElementById('sf-day-tfoot').innerHTML = `<tr>
+    <td>Total</td>
+    <td>${totRec>0?totRec.toLocaleString():'—'}</td>
+    <td><span style="color:var(--base)">${(CONS_DAY_CUM['overall'][Math.min(day-1,30)]).toFixed(0)}%</span></td>
+    <td style="font-weight:600">${totExpCons>0?totExpCons.toLocaleString():'—'}</td>
+    <td>${hasAct?totActCons.toLocaleString():'—'}</td>
+    <td style="color:${totColor}">${totRatio!==null?(totRatio*100).toFixed(0)+'%':'—'}</td>
+    <td style="color:${totColor}">${totRatio!==null?(totRatio>=1?'↑ Ahead':totRatio>=0.85?'~ On track':'↓ Behind'):'—'}</td>
+  </tr>`;
+
+  // Note
+  const overallPct = CONS_DAY_CUM['overall'][Math.min(day-1,30)];
+  document.getElementById('sf-day-note').innerHTML =
+    `By end of day <b style="color:var(--t1)">${day}</b> of <b style="color:var(--t1)">${mon}</b>, on average <b style="color:var(--base)">${overallPct.toFixed(0)}%</b> of a month's total consumption should be done. `+
+    `Cold-calls consume fastest (${CONS_DAY_CUM['cold-calls'][Math.min(day-1,30)].toFixed(0)}% by day ${day}). `+
+    `Web is moderate (${CONS_DAY_CUM['web'][Math.min(day-1,30)].toFixed(0)}%). `+
+    `AMA Rec &amp; Apxor are back-loaded — most consumption happens mid-to-late month. `+
+    (totRec>0 ? `Total leads in actuals tab for <b style="color:var(--t1)">${mon}</b>: <b style="color:var(--t1)">${totRec.toLocaleString()}</b>.` : 'Enter leads in the Actuals vs Forecast tab to populate expected consumption targets.');
+}
+
+/* ── MONTHLY VIEW + CHARTS ─────────────────────────────────────────────────── */
+/* ── Build the merged dataset: historical months + actuals months from tab 2 ── */
+function getSFMergedData(){
+  const SRCS7 = SRCS.filter(s=>s!=='misc');
+
+  // Start with historical months (hardcoded)
+  const rows = CONS_MONTHLY.map(row => ({
+    m: row.m, type:'hist',
+    data: Object.fromEntries(SRCS7.map(s=>[s, row[s]||0])),
+    received: Object.fromEntries(SRCS7.map(s=>[s, HIST_RECEIVED[s]?.[row.m]||0]))
+  }));
+
+  // Append actuals months from tab 2 that are NOT already in historical
+  const histMonths = new Set(CONS_MONTHLY.map(r=>r.m));
+  FMON.forEach(mon => {
+    const ad = actuals[mon];
+    if(!ad) return;
+    // Check if any source has leads entered
+    const hasLeads = SRCS7.some(s => ad[s]?.leads !== '');
+    // Check if any source has consumption entered (from sf actuals)
+    const hasCons  = SRCS7.some(s => sfActuals[FMON.indexOf(mon)]?.[s]);
+    if(!hasLeads && !hasCons) return;
+
+    // Don't duplicate historical months
+    const shortMon = mon; // e.g. "Apr 26"
+    if(histMonths.has(shortMon)) return;
+
+    const recRow  = Object.fromEntries(SRCS7.map(s => [s, ad[s]?.leads !== '' ? +ad[s].leads : 0]));
+    const mi      = FMON.indexOf(mon);
+    const consRow = Object.fromEntries(SRCS7.map(s => [s, sfActuals[mi]?.[s] || 0]));
+
+    rows.push({ m: shortMon, type:'actual', data: consRow, received: recRow });
+  });
+
+  return rows;
+}
+
+function updSFCharts(){
+  const SRCS7 = SRCS.filter(s=>s!=='misc');
+  const merged = getSFMergedData();
+  const labels = merged.map(r=>r.m);
+  const labelColors = merged.map(r => r.type==='actual' ? 'rgba(52,211,153,0.8)' : 'rgba(90,90,106,0.6)');
+
+  // Update table
+  const thead = document.getElementById('sf-monthly-thead');
+  const tbody = document.getElementById('sf-monthly-tbody');
+  if(!thead||!tbody) return;
+
+  thead.innerHTML = `<tr>
+    <th style="text-align:left">Source</th>
+    ${labels.map((m,i)=>`<th style="color:${merged[i].type==='actual'?'#34d399':'var(--t3)'}">${m}${merged[i].type==='actual'?'<br><span style="font-size:9px;color:#34d399">actuals</span>':''}<br><span style="font-size:9px;font-weight:400">rec / cons / %</span></th>`).join('')}
+    <th>Avg</th>
+  </tr>`;
+
+  tbody.innerHTML = SRCS7.map(src => {
+    let sumPct=0, n=0;
+    const cells = merged.map(row => {
+      const rec  = row.received[src]||0;
+      const cons = row.data[src]||0;
+      const pct  = rec>0 ? cons/rec*100 : 0;
+      if(rec>0){ sumPct+=pct; n++; }
+      const c = pct>=95?'#34d399':pct>=80?'#fbbf24':'#f87171';
+      const recStr = rec>0 ? rec.toLocaleString() : '<span style="color:var(--t3)">—</span>';
+      const consStr = cons>0 ? `<b style="color:${c}">${cons.toLocaleString()}</b>` : '<span style="color:var(--t3)">—</span>';
+      const pctStr = rec>0 ? `<span style="color:${c}">${pct.toFixed(0)}%</span>` : '<span style="color:var(--t3)">—</span>';
+      return `<td>${recStr} / ${consStr} / ${pctStr}</td>`;
+    }).join('');
+    const avg = n>0 ? (sumPct/n).toFixed(0)+'%' : '—';
+    const avgC = parseFloat(avg)>=90?'#34d399':parseFloat(avg)>=75?'#fbbf24':'#f87171';
+    return `<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="pip" style="background:${CLR[src]}"></span>${SL[src]}</span></td>
+      ${cells}
+      <td style="font-weight:600;color:${avgC}">${avg}</td>
+    </tr>`;
+  }).join('');
+
+  // Coverage bar chart
+  const covDs = SRCS7.map(src => ({
+    label: SL[src],
+    data: merged.map(row => {
+      const rec = row.received[src]||0;
+      return rec>0 ? parseFloat((row.data[src]/rec*100).toFixed(1)) : 0;
+    }),
+    backgroundColor: CLR[src]+'BB', borderRadius: 2
+  }));
+
+  if(sfCovChart) sfCovChart.destroy();
+  sfCovChart = new Chart(document.getElementById('sf-cov-chart'),{
+    type:'bar', data:{labels, datasets:covDs},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:'#9898a8',font:{size:10},boxWidth:10}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}%`}}
+      },
+      scales:{
+        x:{ticks:{color:'#5a5a6a',font:{size:10},callback:(v,i)=>labels[i]},grid:{display:false}},
+        y:{beginAtZero:true,max:120,ticks:{color:'#5a5a6a',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+
+  // Coverage trend line
+  const trendDs = SRCS7.map(src => ({
+    label: SL[src],
+    data: merged.map(row => {
+      const rec = row.received[src]||0;
+      return rec>0 ? parseFloat((row.data[src]/rec*100).toFixed(1)) : null;
+    }),
+    borderColor: CLR[src], backgroundColor: CLR[src]+'22',
+    tension: 0.3, pointRadius: 3, borderWidth: 2, fill: false
+  }));
+
+  if(sfSrcTrendChart) sfSrcTrendChart.destroy();
+  sfSrcTrendChart = new Chart(document.getElementById('sf-src-trend'),{
+    type:'line', data:{labels, datasets:trendDs},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#9898a8',font:{size:10},boxWidth:10}}},
+      scales:{
+        x:{ticks:{color:'#5a5a6a',font:{size:10}},grid:{display:false}},
+        y:{beginAtZero:false,min:0,ticks:{color:'#5a5a6a',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+
+  // Volume bar chart
+  const volDs = SRCS7.map(src => ({
+    label: SL[src],
+    data: merged.map(row => row.data[src]||0),
+    backgroundColor: CLR[src]+'BB'
+  }));
+
+  if(sfSrcVolChart) sfSrcVolChart.destroy();
+  sfSrcVolChart = new Chart(document.getElementById('sf-src-vol'),{
+    type:'bar', data:{labels, datasets:volDs},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#9898a8',font:{size:10},boxWidth:10}}},
+      scales:{
+        x:{ticks:{color:'#5a5a6a',font:{size:10}},grid:{display:false}},
+        y:{beginAtZero:true,ticks:{color:'#5a5a6a',font:{size:10},callback:v=>v.toLocaleString()},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+}
+
+function buildSFCharts(){
+  updSFCharts();
+}
+
+
+/* ── TEAM & REP PERFORMANCE ──────────────────────────────────────────────────*/
+
+// Manager display name mapping (email prefix → friendly name)
+// Auto-detected from data; this is a fallback
+const MGR_NAMES = {
+  'kumar.abhishek': "Abhishek's Team",
+  'deepika':        "Deepika's Team",
+  'aayush':         "Aayush's Team",
+  'arun':           "Arun's Team",
+};
+
+function getMgrName(raw){
+  if(!raw) return raw;
+  const lower = raw.toLowerCase().trim();
+  const prefix = lower.split('@')[0];
+  return MGR_NAMES[prefix] || MGR_NAMES[lower] || raw;
+}
+function getOwnerName(email){
+  if(!email) return email;
+  return email.split('@')[0].split('.').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+
+// Parsed data stores
+let tpStageData = [];   // [{manager, owner, followup, interested, prospect, reactivated, total}]
+let tpCallData  = [];   // [{manager, owner, callTime, dialed, connected}]
+let tpView = 'combined';
+
+function setTPView(v, btn){
+  tpView=v;
+  document.querySelectorAll('.dtab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderTeamPerf();
+}
+
+function clearTeamData(){
+  tpStageData=[]; tpCallData=[];
+  if(tpAutoTimer){clearInterval(tpAutoTimer);tpAutoTimer=null;}
+  const el=document.getElementById('tp-auto-chk'); if(el) el.checked=false;
+  setTpStatus('idle','not connected');
+  document.getElementById('tp-last-sync').textContent='';
+  document.getElementById('tp-sheet-dot').className='sheet-dot';
+  try{localStorage.removeItem('lf_tp_url');}catch(e){}
+  renderTeamPerf(); renderPipelineHealth();
+}
+
+/* ── Week label: auto-compute current Mon–Sun ──────────────────────────────── */
+function getWeekLabel(){
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const mon = new Date(now); mon.setDate(now.getDate() - (day===0?6:day-1));
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  const fmt = d => d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  return fmt(mon)+' – '+fmt(sun);
+}
+
+/* ── Sheet connector for Team Perf ─────────────────────────────────────────── */
+const TP_URL_KEY = 'lf_tp_url';
+let tpAutoTimer = null;
+
+function saveTpUrl(){ try{localStorage.setItem(TP_URL_KEY, document.getElementById('tp-url').value.trim());}catch(e){} }
+function loadTpUrl(){ try{const u=localStorage.getItem(TP_URL_KEY); if(u) document.getElementById('tp-url').value=u;}catch(e){} }
+
+function setTpStatus(type, msg){
+  const el=document.getElementById('tp-sheet-status'), dot=document.getElementById('tp-sheet-dot');
+  if(!el||!dot) return;
+  el.className='sheet-status ss-'+type; el.textContent=msg;
+  dot.className='sheet-dot'+(type==='ok'?' ok':type==='err'?' err':'');
+}
+
+function tpLog(msg, cls){
+  const log=document.getElementById('tp-fetch-log'); if(!log) return;
+  const line=document.createElement('div'); line.className='log-line '+(cls||''); line.textContent=msg;
+  log.appendChild(line); log.scrollTop=log.scrollHeight;
+}
+function tpClearLog(){ const l=document.getElementById('tp-fetch-log'); if(l) l.innerHTML=''; }
+
+async function fetchTeamSheet(){
+  const url = document.getElementById('tp-url').value.trim();
+  if(!url){ setTpStatus('err','paste a URL first'); return; }
+  saveTpUrl();
+  tpClearLog();
+  document.getElementById('tp-fetch-log-wrap').style.display='block';
+  const btn=document.getElementById('tp-fetch-btn');
+  if(btn){btn.disabled=true; btn.textContent='⏳ Fetching…';}
+  setTpStatus('loading','fetching…');
+
+  const PROXIES=[
+    {name:'Direct', url},
+    {name:'corsproxy.io', url:'https://corsproxy.io/?'+encodeURIComponent(url)},
+    {name:'allorigins',   url:'https://api.allorigins.win/raw?url='+encodeURIComponent(url)},
+    {name:'codetabs',     url:'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url)},
+  ];
+  let text=null;
+  for(const p of PROXIES){
+    tpLog('Trying '+p.name+'…');
+    try{
+      const r=await fetch(p.url,{cache:'no-store',signal:AbortSignal.timeout(8000)});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const t=await r.text();
+      if(t.trim().startsWith('<!')) throw new Error('Got HTML instead of CSV');
+      if(t.trim().length<10) throw new Error('Empty response');
+      tpLog('✓ '+p.name+' succeeded','log-ok');
+      text=t; break;
+    }catch(e){ tpLog('✗ '+p.name+' failed: '+e.message,'log-err'); }
+  }
+
+  if(btn){btn.disabled=false; btn.textContent='↻ Fetch now';}
+  if(!text){
+    setTpStatus('err','All fetch methods failed');
+    return;
+  }
+
+  try{
+    const {stageRows, callRows} = parseTeamCSV(text);
+    tpStageData=stageRows; tpCallData=callRows;
+    const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('tp-last-sync').textContent='· synced '+now;
+    setTpStatus('ok','✓ '+(stageRows.length+callRows.length)+' rows imported');
+    tpLog('✓ Imported: '+stageRows.length+' stage rows, '+callRows.length+' call rows','log-ok');
+    renderTeamPerf(); renderPipelineHealth();
+    maybeSlackAlert();
+  }catch(e){
+    setTpStatus('err','✗ '+e.message);
+    tpLog('✗ Parse error: '+e.message,'log-err');
+  }
+}
+
+function toggleTpAutoRefresh(on){
+  if(tpAutoTimer){clearInterval(tpAutoTimer);tpAutoTimer=null;}
+  if(on){ const s=parseInt(document.getElementById('tp-refresh-interval').value)||60; tpAutoTimer=setInterval(fetchTeamSheet,s*1000); }
+}
+
+function parseTeamCSV(text){
+  const rows=parseCSVRows(text); // reuse existing RFC-4180 parser from tab 2
+  if(rows.length<2) throw new Error('Sheet has fewer than 2 rows');
+
+  tpLog('── CSV preview ──');
+  rows.slice(0,3).forEach((r,i)=>tpLog((i===0?'HDR: ':'R'+i+': ')+r.slice(0,8).join(' | ')));
+
+  const hdr=rows[0].map(h=>h.toLowerCase().replace(/['"]/g,'').trim());
+  const iMgr  = findCol(hdr,'manager');
+  const iOwn  = findCol(hdr,'owner','email','rep');
+  const iFU   = findCol(hdr,'follow','followup');
+  const iInt  = findCol(hdr,'interested');
+  const iPro  = findCol(hdr,'prospect');
+  const iReA  = findCol(hdr,'re-act','react','reactivat');
+  const iGT   = findCol(hdr,'grand','total');
+  const iTime = findCol(hdr,'time','duration','call_time');
+  const iDial = findCol(hdr,'dial','dialed_calls');
+  const iConn = findCol(hdr,'connect','connected_calls');
+
+  tpLog('Stage cols — Manager:'+iMgr+' Owner:'+iOwn+' FollowUp:'+iFU+' Prospect:'+iPro+' ReAct:'+iReA);
+  tpLog('Call  cols — Time:'+iTime+' Dialed:'+iDial+' Connected:'+iConn);
+
+  const stageRows=[], callRows=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    if(!r.some(c=>c)) continue;
+    const own=(iOwn>=0?r[iOwn]:'').trim();
+    const mgr=(iMgr>=0?r[iMgr]:'').trim();
+    if(!own&&!mgr) continue;
+    if(own.toLowerCase().includes('total')||own.toLowerCase().includes('team')) continue;
+
+    const getN=idx=>(idx>=0&&r[idx]!==undefined&&r[idx]!=='') ? parseFloat(r[idx])||0 : 0;
+
+    // Stage data — if any stage column detected
+    if(iFU>=0||iPro>=0||iReA>=0||iInt>=0){
+      const followup=getN(iFU), interested=getN(iInt), prospect=getN(iPro), reactivated=getN(iReA);
+      const total=iGT>=0?getN(iGT):followup+interested+prospect+reactivated;
+      stageRows.push({manager:mgr,owner:own,followup,interested,prospect,reactivated,total});
+    }
+    // Call data — if any call column detected
+    if(iTime>=0||iDial>=0||iConn>=0){
+      callRows.push({manager:mgr,owner:own,callTime:getN(iTime),dialed:getN(iDial),connected:getN(iConn)});
+    }
+  }
+  return{stageRows,callRows};
+}
+
+function restoreTpUI(){
+  loadTpUrl();
+  try{
+    const auto=localStorage.getItem('lf_tp_auto');
+    const interval=localStorage.getItem('lf_tp_interval');
+    if(interval){ const el=document.getElementById('tp-refresh-interval'); if(el) el.value=interval; }
+    if(auto==='1'){ const el=document.getElementById('tp-auto-chk'); if(el){el.checked=true;toggleTpAutoRefresh(true);} }
+    const u=localStorage.getItem(TP_URL_KEY);
+    if(u && u===document.getElementById('tp-url')?.value){
+      setTpStatus('ok','connected · click Fetch to refresh');
+      document.getElementById('tp-sheet-dot').className='sheet-dot ok';
+    }
+  }catch(e){}
+}
+
+/* ── PARSE HELPERS ─────────────────────────────────────────────────────────── */
+function splitRow(line){
+  // Handle tab or comma separated
+  if(line.includes('\t')) return line.split('\t').map(c=>c.trim());
+  return line.split(',').map(c=>c.trim().replace(/^["']+|["']+$/g,''));
+}
+function findCol(header, ...terms){
+  return header.findIndex(h=>terms.some(t=>h.toLowerCase().includes(t.toLowerCase())));
+}
+
+
+/* ── RENDER TEAM PERFORMANCE ─────────────────────────────────────────────────*/
+function initTeamPerf(){
+  // Auto-set week label
+  const weekLbl = document.getElementById('tp-week-lbl');
+  if(weekLbl) weekLbl.textContent = 'Current week: '+getWeekLabel()+' · Alerts shown here in dashboard only';
+  restoreTpUI();
+  renderTeamPerf();
+}
+
+function renderTeamPerf(){
+  const hasStage = tpStageData.length > 0;
+  const hasCall  = tpCallData.length > 0;
+  if(!hasStage && !hasCall){
+    document.getElementById('tp-alerts').innerHTML='';
+    document.getElementById('tp-teams').innerHTML='<div class="no-data-hint">Paste pipeline stage data or call metrics above to see the team breakdown.</div>';
+    return;
+  }
+
+  // Build owner map: email/name → merged record
+  const ownerMap = {};
+  if(hasStage){
+    tpStageData.forEach(d=>{
+      const key = d.owner.toLowerCase().trim();
+      if(!ownerMap[key]) ownerMap[key]={owner:d.owner,manager:d.manager,followup:0,interested:0,prospect:0,reactivated:0,stageTotal:0,callTime:0,dialed:0,connected:0};
+      ownerMap[key].followup   += d.followup;
+      ownerMap[key].interested += d.interested;
+      ownerMap[key].prospect   += d.prospect;
+      ownerMap[key].reactivated+= d.reactivated;
+      ownerMap[key].stageTotal += d.total;
+      if(!ownerMap[key].manager && d.manager) ownerMap[key].manager = d.manager;
+    });
+  }
+  if(hasCall){
+    tpCallData.forEach(d=>{
+      const key = d.owner.toLowerCase().trim();
+      if(!ownerMap[key]) ownerMap[key]={owner:d.owner,manager:d.manager,followup:0,interested:0,prospect:0,reactivated:0,stageTotal:0,callTime:0,dialed:0,connected:0};
+      ownerMap[key].callTime  += d.callTime;
+      ownerMap[key].dialed    += d.dialed;
+      ownerMap[key].connected += d.connected;
+      if(!ownerMap[key].manager && d.manager) ownerMap[key].manager = d.manager;
+    });
+  }
+
+  // Group by manager
+  const teams = {};
+  Object.values(ownerMap).forEach(rep=>{
+    const mgr = getMgrName(rep.manager) || 'Unassigned';
+    if(!teams[mgr]) teams[mgr] = [];
+    teams[mgr].push(rep);
+  });
+
+  // ── Alerts ─────────────────────────────────────────────────────────────────
+  const zeroStageReps  = Object.values(ownerMap).filter(r=>r.stageTotal===0 && hasStage);
+  const lowConnReps    = Object.values(ownerMap).filter(r=>r.dialed>0&&(r.connected/r.dialed)<0.4);
+  const zeroCallReps   = hasCall ? Object.values(ownerMap).filter(r=>r.dialed===0) : [];
+  const highFUReps     = Object.values(ownerMap).filter(r=>r.followup>5);
+
+  const alertsHTML = (zeroStageReps.length||lowConnReps.length||zeroCallReps.length||highFUReps.length) ? `
+    <div class="alert-grid" style="margin-bottom:14px">
+      ${zeroCallReps.length ? `<div class="alert-card">
+        <div class="alert-card-title" style="color:#f87171">⚠ No calls made</div>
+        ${zeroCallReps.map(r=>`<div class="alert-item"><span class="alert-dot" style="background:#f87171"></span><b>${getOwnerName(r.owner)}</b> — 0 calls this period</div>`).join('')}
+      </div>` : ''}
+      ${lowConnReps.length ? `<div class="alert-card">
+        <div class="alert-card-title" style="color:#fbbf24">⚡ Low connect rate</div>
+        ${lowConnReps.map(r=>`<div class="alert-item"><span class="alert-dot" style="background:#fbbf24"></span><b>${getOwnerName(r.owner)}</b> — ${r.dialed>0?(r.connected/r.dialed*100).toFixed(0):0}% connect rate</div>`).join('')}
+      </div>` : ''}
+      ${highFUReps.length ? `<div class="alert-card">
+        <div class="alert-card-title" style="color:#a78bfa">📌 High follow-up backlog</div>
+        ${highFUReps.slice(0,6).map(r=>`<div class="alert-item"><span class="alert-dot" style="background:#a78bfa"></span><b>${getOwnerName(r.owner)}</b> — ${r.followup} pending follow-ups</div>`).join('')}
+      </div>` : ''}
+    </div>` : '';
+  document.getElementById('tp-alerts').innerHTML = alertsHTML;
+
+  // ── Team blocks ─────────────────────────────────────────────────────────────
+  const teamColors = ['#5b8ff9','#34d399','#fbbf24','#f472b6','#a78bfa','#f97b5b'];
+  let teamHTML = '';
+  Object.entries(teams).forEach(([mgr, reps], ti) => {
+    const tc = teamColors[ti % teamColors.length];
+    const totFU  = reps.reduce((a,r)=>a+r.followup,0);
+    const totInt = reps.reduce((a,r)=>a+r.interested,0);
+    const totPro = reps.reduce((a,r)=>a+r.prospect,0);
+    const totRA  = reps.reduce((a,r)=>a+r.reactivated,0);
+    const totST  = reps.reduce((a,r)=>a+r.stageTotal,0);
+    const totDial= reps.reduce((a,r)=>a+r.dialed,0);
+    const totConn= reps.reduce((a,r)=>a+r.connected,0);
+    const totTime= reps.reduce((a,r)=>a+r.callTime,0);
+    const connR  = totDial>0?(totConn/totDial*100).toFixed(0)+'%':'—';
+
+    // Sort reps by prospect+reactivated desc (most active pipeline)
+    reps.sort((a,b)=>(b.prospect+b.reactivated)-(a.prospect+a.reactivated));
+
+    const showStage = (tpView==='combined'||tpView==='stages') && hasStage;
+    const showCall  = (tpView==='combined'||tpView==='calls')  && hasCall;
+
+    const headerCols = `
+      ${showStage?'<th>Follow-up</th><th>Interested</th><th>Prospect</th><th>Re-activated</th><th>Stage Total</th>':''}
+      ${showCall ?'<th>Call Time</th><th>Dialed</th><th>Connected</th><th>Connect %</th>':''}`;
+
+    const footerCols = `
+      ${showStage?`<td>${totFU}</td><td>${totInt}</td><td>${totPro}</td><td>${totRA}</td><td style="color:${tc};font-weight:700">${totST}</td>`:''}
+      ${showCall ?`<td>${totTime.toFixed(1)}</td><td>${totDial}</td><td>${totConn}</td><td style="color:${totConn/Math.max(totDial,1)>=0.5?'#34d399':'#fbbf24'}">${connR}</td>`:''}`;
+
+    const repRows = reps.map(rep => {
+      const connPct = rep.dialed>0 ? rep.connected/rep.dialed*100 : 0;
+      const connColor = connPct>=60?'#34d399':connPct>=40?'#fbbf24':'#f87171';
+      const barW = Math.round(Math.min(connPct,100));
+      const stageCells = showStage ? `
+        <td style="color:${rep.followup>5?'#f87171':'var(--t1)'}">${rep.followup||'—'}</td>
+        <td>${rep.interested||'—'}</td>
+        <td style="color:${rep.prospect>0?'#34d399':'var(--t3)'}">${rep.prospect||'—'}</td>
+        <td style="color:${rep.reactivated>3?'#a78bfa':'var(--t1)'}">${rep.reactivated||'—'}</td>
+        <td style="font-weight:600">${rep.stageTotal||'—'}</td>` : '';
+      const callCells = showCall ? `
+        <td>${rep.callTime>0?rep.callTime.toFixed(1):'—'}</td>
+        <td>${rep.dialed||'—'}</td>
+        <td>${rep.connected||'—'}</td>
+        <td>${rep.dialed>0?`<span style="color:${connColor}">${connPct.toFixed(0)}%</span><div class="call-bar" style="width:${barW}px;background:${connColor}"></div>`:'—'}</td>` : '';
+      return `<tr>
+        <td>${getOwnerName(rep.owner)}</td>
+        ${stageCells}${callCells}
+      </tr>`;
+    }).join('');
+
+    teamHTML += `<div class="team-block">
+      <div class="team-header" style="border-top:2px solid ${tc}">
+        <span class="team-name" style="color:${tc}">${mgr}</span>
+        <span class="team-total-badge">${hasStage?totST+' stage leads · ':''} ${hasCall?totDial+' dialed · '+connR+' connect':''}</span>
+      </div>
+      <table class="rep-table">
+        <thead><tr><th style="text-align:left">Rep</th>${headerCols}</tr></thead>
+        <tbody>${repRows}</tbody>
+        <tfoot><tr><td>Team Total</td>${footerCols}</tr></tfoot>
+      </table>
+    </div>`;
+  });
+
+  document.getElementById('tp-teams').innerHTML = teamHTML || '<div class="no-data-hint">No data to display for this view.</div>';
+}
+
+/* ── RENDER PIPELINE HEALTH ──────────────────────────────────────────────────*/
+function renderPipelineHealth(){
+  const hasStage = tpStageData.length > 0;
+  const plEl = document.getElementById('pl-content');
+  if(!plEl) return;
+  if(!hasStage){
+    plEl.innerHTML='<div class="no-data-hint">Go to <b style="color:var(--t1)">Team Performance</b> tab and paste your pipeline stage data first.<br>This tab auto-populates from the same data.</div>';
+    return;
+  }
+
+  // Grand totals
+  const totFU  = tpStageData.reduce((a,r)=>a+r.followup,0);
+  const totInt = tpStageData.reduce((a,r)=>a+r.interested,0);
+  const totPro = tpStageData.reduce((a,r)=>a+r.prospect,0);
+  const totRA  = tpStageData.reduce((a,r)=>a+r.reactivated,0);
+  const grand  = totFU+totInt+totPro+totRA;
+
+  const STAGES = [
+    {k:'prospect',   label:'Prospect',      val:totPro, col:'#34d399', desc:'Active leads being worked'},
+    {k:'reactivated',label:'Re-activated',  val:totRA,  col:'#a78bfa', desc:'Previously cold, now re-engaged'},
+    {k:'followup',   label:'Follow-up Req', val:totFU,  col:'#fbbf24', desc:'Need follow-up action'},
+    {k:'interested', label:'Interested',    val:totInt, col:'#5b8ff9', desc:'Expressed interest, not yet prospect'},
+  ];
+
+  // Stage health cards
+  const stageCards = STAGES.map(s=>{
+    const pct = grand>0?(s.val/grand*100).toFixed(0):0;
+    return `<div class="pl-stage-card" style="--sc:${s.col}">
+      <p class="sf-kl">${s.label}</p>
+      <p class="sf-kv" style="color:${s.col}">${s.val.toLocaleString()}</p>
+      <p class="sf-ks">${pct}% of pipeline · ${s.desc}</p>
+      <div class="pbar-wrap" style="margin-top:8px"><div class="pbar" style="width:${pct}%;background:${s.col}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Overall pipeline bar
+  const barSegs = STAGES.map(s=>grand>0?`<div class="stage-seg" style="width:${(s.val/grand*100).toFixed(1)}%;background:${s.col}" title="${s.label}: ${s.val}"></div>`:'').join('');
+  const legendItems = STAGES.map(s=>`<span class="stage-leg-item"><span style="width:10px;height:10px;border-radius:2px;background:${s.col};display:inline-block"></span>${s.label}: <b style="color:${s.t1}">${s.val}</b></span>`).join('');
+
+  // Per-team stage breakdown
+  const teamGroups = {};
+  tpStageData.forEach(d=>{
+    const mgr = getMgrName(d.manager)||'Unassigned';
+    if(!teamGroups[mgr]) teamGroups[mgr]={fu:0,int:0,pro:0,ra:0,tot:0};
+    teamGroups[mgr].fu  += d.followup;
+    teamGroups[mgr].int += d.interested;
+    teamGroups[mgr].pro += d.prospect;
+    teamGroups[mgr].ra  += d.reactivated;
+    teamGroups[mgr].tot += d.total;
+  });
+
+  const teamColors = ['#5b8ff9','#34d399','#fbbf24','#f472b6','#a78bfa','#f97b5b'];
+  const teamRows = Object.entries(teamGroups).map(([mgr,v],i)=>{
+    const tc=teamColors[i%teamColors.length];
+    const proRate=(v.tot>0?(v.pro/v.tot*100).toFixed(0):0);
+    return `<tr>
+      <td style="color:${tc};font-weight:500">${mgr}</td>
+      <td style="color:#34d399">${v.pro}</td>
+      <td style="color:#a78bfa">${v.ra}</td>
+      <td style="color:#fbbf24">${v.fu}</td>
+      <td style="color:#5b8ff9">${v.int}</td>
+      <td style="font-weight:600">${v.tot}</td>
+      <td>
+        <span style="color:${proRate>=40?'#34d399':proRate>=20?'#fbbf24':'#f87171'}">${proRate}%</span>
+        <div style="display:inline-block;width:${proRate}px;max-width:80px;height:4px;background:${proRate>=40?'#34d399':proRate>=20?'#fbbf24':'#f87171'};border-radius:2px;vertical-align:middle;margin-left:6px"></div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Rep-level alerts
+  const highFU   = tpStageData.filter(r=>r.followup>=5).sort((a,b)=>b.followup-a.followup).slice(0,6);
+  const topPro   = tpStageData.filter(r=>r.prospect>0).sort((a,b)=>b.prospect-a.prospect).slice(0,6);
+  const stalePro = tpStageData.filter(r=>r.reactivated>5).sort((a,b)=>b.reactivated-a.reactivated).slice(0,6);
+
+  plEl.innerHTML = `
+    <div class="pl-grid">${stageCards}</div>
+
+    <div class="sf-panel" style="margin-bottom:14px">
+      <div class="ptitle">Pipeline composition</div>
+      <div class="stage-legend">${legendItems} &nbsp;·&nbsp; <b style="color:var(--t1)">Total: ${grand.toLocaleString()}</b></div>
+      <div class="stage-bar-wrap" style="height:14px;border-radius:6px;">${barSegs}</div>
+    </div>
+
+    <div class="sf-panel" style="margin-bottom:14px">
+      <div class="ptitle">Team-level stage breakdown</div>
+      <div style="overflow-x:auto">
+        <table class="rep-table">
+          <thead><tr>
+            <th style="text-align:left">Team</th>
+            <th style="color:#34d399">Prospect</th>
+            <th style="color:#a78bfa">Re-activated</th>
+            <th style="color:#fbbf24">Follow-up</th>
+            <th style="color:#5b8ff9">Interested</th>
+            <th>Total</th>
+            <th>Prospect rate</th>
+          </tr></thead>
+          <tbody>${teamRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div class="alert-card">
+        <div class="alert-card-title" style="color:#34d399">🔥 Top prospects</div>
+        ${topPro.length?topPro.map(r=>`<div class="alert-item"><span class="alert-dot" style="background:#34d399"></span><b>${getOwnerName(r.owner)}</b> — ${r.prospect} prospects</div>`).join(''):'<div class="alert-item" style="color:var(--t3)">No data</div>'}
+      </div>
+      <div class="alert-card">
+        <div class="alert-card-title" style="color:#fbbf24">⏳ Follow-up backlog</div>
+        ${highFU.length?highFU.map(r=>`<div class="alert-item"><span class="alert-dot" style="background:#fbbf24"></span><b>${getOwnerName(r.owner)}</b> — ${r.followup} pending</div>`).join(''):'<div class="alert-item" style="color:var(--t3)">All clear</div>'}
+      </div>
+      <div class="alert-card">
+        <div class="alert-card-title" style="color:#a78bfa">♻ High re-activated</div>
+        ${stalePro.length?stalePro.map(r=>`<div class="alert-item"><span class="alert-dot" style="background:#a78bfa"></span><b>${getOwnerName(r.owner)}</b> — ${r.reactivated} re-activated</div>`).join(''):'<div class="alert-item" style="color:var(--t3)">No backlog</div>'}
+      </div>
+    </div>`;
+}
+
+function initPipeline(){ renderPipelineHealth(); }
+
+
+/* ── SLACK NOTIFICATIONS ─────────────────────────────────────────────────────
+   Uses Slack Incoming Webhooks — no backend needed, works direct from browser.
+   Webhook URL saved in localStorage, never sent anywhere except Slack.
+─────────────────────────────────────────────────────────────────────────────*/
+const SLACK_URL_KEY = 'lf_slack_webhook';
+const SLACK_AUTO_KEY = 'lf_slack_auto';
+let slackAutoEnabled = false;
+let lastAlertHash = '';   // Dedup — don't re-send same alert
+
+function saveSlackUrl(){
+  const url = document.getElementById('slack-webhook-url')?.value.trim();
+  try{ localStorage.setItem(SLACK_URL_KEY, url||''); }catch(e){}
+  updSlackBadge();
+}
+function loadSlackUrl(){
+  try{
+    const u = localStorage.getItem(SLACK_URL_KEY);
+    const el = document.getElementById('slack-webhook-url');
+    if(u && el) el.value = u;
+    updSlackBadge();
+    const auto = localStorage.getItem(SLACK_AUTO_KEY);
+    if(auto==='1'){
+      slackAutoEnabled=true;
+      const chk=document.getElementById('slack-auto-chk'); if(chk) chk.checked=true;
+    }
+  }catch(e){}
+}
+function updSlackBadge(){
+  const url = document.getElementById('slack-webhook-url')?.value.trim();
+  const badge = document.getElementById('slack-status-badge');
+  if(!badge) return;
+  if(url && url.startsWith('https://hooks.slack.com')){
+    badge.className='slack-badge slack-on'; badge.textContent='✓ webhook set';
+  } else {
+    badge.className='slack-badge slack-off'; badge.textContent='not connected';
+  }
+}
+function toggleSlackAuto(on){
+  slackAutoEnabled=on;
+  try{ localStorage.setItem(SLACK_AUTO_KEY, on?'1':'0'); }catch(e){}
+}
+
+function getSlackWebhook(){
+  return document.getElementById('slack-webhook-url')?.value.trim()||'';
+}
+
+async function postToSlack(payload){
+  const url = getSlackWebhook();
+  if(!url) return {ok:false, error:'No webhook URL set'};
+
+  const body = JSON.stringify(payload);
+  const headers = {'Content-Type':'application/json'};
+
+  // ── Strategy 1: Direct (works when served over https with CORS allowed) ─────
+  try{
+    const r = await fetch(url,{method:'POST',headers,body,signal:AbortSignal.timeout(6000)});
+    if(r.status===200) return {ok:true};
+    // Slack returns "ok" text on success
+    const t = await r.text();
+    if(t==='ok') return {ok:true};
+  }catch(e){ /* CORS likely — try proxy */ }
+
+  // ── Strategy 2: Route POST through corsproxy.io ───────────────────────────
+  try{
+    const proxyUrl = 'https://corsproxy.io/?'+encodeURIComponent(url);
+    const r = await fetch(proxyUrl,{method:'POST',headers,body,signal:AbortSignal.timeout(8000)});
+    const t = await r.text();
+    if(r.status===200||t==='ok') return {ok:true};
+  }catch(e){ /* try next */ }
+
+  // ── Strategy 3: proxy.cors.sh (supports POST) ────────────────────────────
+  try{
+    const r = await fetch('https://proxy.cors.sh/'+url,{
+      method:'POST',headers:{...headers,'x-cors-api-key':'temp_...'},body,
+      signal:AbortSignal.timeout(8000)
+    });
+    const t = await r.text();
+    if(r.status===200||t==='ok') return {ok:true};
+  }catch(e){ /* all failed */ }
+
+  return {
+    ok:false,
+    error:'CORS_BLOCKED',
+    hint:'All methods blocked by CORS. See instructions below.'
+  };
+}
+
+async function testSlack(){
+  const url = getSlackWebhook();
+  if(!url){alert('Paste your Slack webhook URL first.');return;}
+  const btn = document.getElementById('slack-report-btn');
+  if(btn){btn.disabled=true;btn.textContent='Testing…';}
+  const result = await postToSlack({
+    text:'✅ *Lead Dashboard* — test ping successful!\nYour webhook is working. Reports and alerts will arrive here.'
+  });
+  if(btn){btn.disabled=false;btn.textContent='📤 Send report now';}
+  if(result.ok){
+    updSlackBadge();
+    alert('✅ Slack ping successful! Check your channel.');
+  } else {
+    showSlackCorsHelp();
+  }
+}
+
+async function sendSlackReport(){
+  const url = getSlackWebhook();
+  if(!url){alert('Paste your Make.com webhook URL first, then test it.');return;}
+  if(!tpStageData.length && !tpCallData.length){
+    alert('No team data loaded. Fetch your Google Sheet first.');return;}
+  const week = getWeekLabel();
+  const hasStage=tpStageData.length>0, hasCall=tpCallData.length>0;
+
+  // Build merged owner map
+  const ownerMap={};
+  tpStageData.forEach(d=>{const k=d.owner.toLowerCase();if(!ownerMap[k])ownerMap[k]={owner:d.owner,manager:d.manager,followup:0,interested:0,prospect:0,reactivated:0,total:0,dial:0,conn:0,callTime:0};ownerMap[k].followup+=d.followup;ownerMap[k].interested+=d.interested;ownerMap[k].prospect+=d.prospect;ownerMap[k].reactivated+=d.reactivated;ownerMap[k].total+=d.total;});
+  tpCallData.forEach(d=>{const k=d.owner.toLowerCase();if(!ownerMap[k])ownerMap[k]={owner:d.owner,manager:d.manager,followup:0,interested:0,prospect:0,reactivated:0,total:0,dial:0,conn:0,callTime:0};ownerMap[k].dial+=d.dialed;ownerMap[k].conn+=d.connected;ownerMap[k].callTime+=d.callTime||0;});
+
+  // Group by manager
+  const teamMap={};
+  Object.values(ownerMap).forEach(r=>{
+    const mgr=getMgrName(r.manager)||'Unassigned';
+    if(!teamMap[mgr]) teamMap[mgr]=[];
+    teamMap[mgr].push(r);
+  });
+
+  // Alerts
+  const zeroCall=Object.values(ownerMap).filter(r=>hasCall&&r.dial===0);
+  const lowConn=Object.values(ownerMap).filter(r=>r.dial>0&&r.conn/r.dial<0.4);
+  const highFU=Object.values(ownerMap).filter(r=>r.followup>5).sort((a,b)=>b.followup-a.followup);
+
+  const PAD=(s,n)=>{const str=String(s); return str.length>=n?str:str+` `.repeat(n-str.length);};
+  const parts=[];
+
+  parts.push('*:bar_chart: Team Performance Report — '+week+'*');
+  parts.push('');
+
+  Object.entries(teamMap).forEach(([mgr,reps])=>{
+    // Team totals
+    const tFU=reps.reduce((a,r)=>a+r.followup,0);
+    const tInt=reps.reduce((a,r)=>a+r.interested,0);
+    const tPro=reps.reduce((a,r)=>a+r.prospect,0);
+    const tRA=reps.reduce((a,r)=>a+r.reactivated,0);
+    const tST=reps.reduce((a,r)=>a+r.total,0);
+    const tDial=reps.reduce((a,r)=>a+r.dial,0);
+    const tConn=reps.reduce((a,r)=>a+r.conn,0);
+    const tCR=tDial>0?(tConn/tDial*100).toFixed(0)+'%':'n/a';
+    const tCRFlag=tDial>0&&tConn/tDial<0.5?' :warning:':tDial>0&&tConn/tDial>=0.8?' :white_check_mark:':''
+
+    parts.push('*'+mgr+'*');
+    if(hasStage){
+      parts.push('  :bar_chart: Pipeline: *'+tST+'* leads');
+      parts.push('    Prospect: *'+tPro+'*  |  Re-activated: '+tRA+'  |  Follow-up: '+tFU+'  |  Interested: '+tInt);
+    }
+    if(hasCall){
+      parts.push('  :telephone_receiver: Calls: *'+tDial+'* dialed \u2192 *'+tConn+'* connected ('+tCR+')'+tCRFlag);
+    }
+
+    // Per-rep breakdown
+    reps.sort((a,b)=>(b.prospect+b.reactivated)-(a.prospect+a.reactivated));
+    if(hasStage && hasCall){
+      parts.push('  ```');
+      parts.push('  Rep                  | Pros | ReAct | FU   | Int  | Dial | Conn | CR%  ');
+      parts.push('  ---------------------|------|-------|------|------|------|------|------');
+      reps.forEach(r=>{
+        const name=getOwnerName(r.owner).substring(0,20);
+        const cr=r.dial>0?(r.conn/r.dial*100).toFixed(0)+'%':'n/a';
+        const flag=r.dial>0&&r.conn/r.dial<0.4?'!':r.followup>10?'^':' ';
+        parts.push('  '+flag+PAD(name,20)+'| '+PAD(r.prospect,5)+'| '+PAD(r.reactivated,6)+'| '+PAD(r.followup,5)+'| '+PAD(r.interested,5)+'| '+PAD(r.dial,5)+'| '+PAD(r.conn,5)+'| '+cr);
+      });
+      parts.push('  ```');
+    } else if(hasStage){
+      parts.push('  ```');
+      parts.push('  Rep                  | Pros | ReAct | FU   | Int  | Total');
+      parts.push('  ---------------------|------|-------|------|------|------');
+      reps.forEach(r=>{
+        const name=getOwnerName(r.owner).substring(0,20);
+        const flag=r.followup>10?'^':' ';
+        parts.push('  '+flag+PAD(name,20)+'| '+PAD(r.prospect,5)+'| '+PAD(r.reactivated,6)+'| '+PAD(r.followup,5)+'| '+PAD(r.interested,5)+'| '+r.total);
+      });
+      parts.push('  ```');
+    } else if(hasCall){
+      parts.push('  ```');
+      parts.push('  Rep                  | Dialed | Conn  | CR%   | Hrs  ');
+      parts.push('  ---------------------|--------|-------|-------|------');
+      reps.forEach(r=>{
+        const name=getOwnerName(r.owner).substring(0,20);
+        const cr=r.dial>0?(r.conn/r.dial*100).toFixed(0)+'%':'n/a';
+        const flag=r.dial>0&&r.conn/r.dial<0.4?'!':' ';
+        parts.push('  '+flag+PAD(name,20)+'| '+PAD(r.dial,7)+'| '+PAD(r.conn,6)+'| '+PAD(cr,6)+'| '+r.callTime.toFixed(1));
+      });
+      parts.push('  ```');
+    }
+    parts.push('');
+  });
+
+  // Alerts section
+  const alertLines=[];
+  if(zeroCall.length) alertLines.push(':rotating_light: No calls: '+zeroCall.map(r=>getOwnerName(r.owner)).join(', '));
+  if(lowConn.length)  alertLines.push(':warning: Low connect (<40%): '+lowConn.map(r=>getOwnerName(r.owner)+' ('+(r.conn/r.dial*100).toFixed(0)+'%)').join(', '));
+  if(highFU.length)   alertLines.push(':pushpin: Follow-up backlog: '+highFU.slice(0,8).map(r=>getOwnerName(r.owner)+' ('+r.followup+')').join(', '));
+  if(alertLines.length){
+    parts.push('*:bell: Alerts*');
+    alertLines.forEach(a=>parts.push('  '+a));
+  } else {
+    parts.push(':white_check_mark: No critical alerts this period');
+  }
+
+  parts.push('');
+  parts.push('_Lead Dashboard · '+new Date().toLocaleString('en-IN')+'_');
+  parts.push('_Legend: ! = low connect rate  ^  = high follow-up backlog_');
+
+  const msg = parts.join('\n');
+  const result = await postToSlack({text: msg});
+  if(result.ok){ alert('Report sent to Slack!'); }
+  else if(result.error==='CORS_BLOCKED'){ showSlackCorsHelp(); }
+  else { alert('Failed: '+result.error); }
+}
+
+/* Called automatically after each data fetch if auto-alert is on */
+async function maybeSlackAlert(){
+  if(!slackAutoEnabled) return;
+  const url = getSlackWebhook();
+  if(!url) return;
+  if(!tpStageData.length && !tpCallData.length) return;
+
+  const ownerMap={};
+  tpStageData.forEach(d=>{const k=d.owner.toLowerCase();ownerMap[k]={...d};});
+  tpCallData.forEach(d=>{const k=d.owner.toLowerCase();if(!ownerMap[k])ownerMap[k]={owner:d.owner,manager:d.manager,followup:0,interested:0,prospect:0,reactivated:0,total:0,dialed:0,connected:0};ownerMap[k].dialed+=d.dialed;ownerMap[k].connected+=d.connected;});
+
+  const zeroCall=Object.values(ownerMap).filter(r=>tpCallData.length>0&&r.dialed===0);
+  const lowConn =Object.values(ownerMap).filter(r=>r.dialed>0&&r.connected/r.dialed<0.4);
+  const highFU  =Object.values(ownerMap).filter(r=>r.followup>5);
+
+  if(!zeroCall.length && !lowConn.length && !highFU.length) return;
+
+  // Dedup — only alert if alerts changed since last send
+  const alertHash = JSON.stringify({zc:zeroCall.map(r=>r.owner).sort(), lc:lowConn.map(r=>r.owner).sort(), hf:highFU.map(r=>r.owner).sort()});
+  if(alertHash === lastAlertHash) return;
+  lastAlertHash = alertHash;
+
+  const lines=[];
+  if(zeroCall.length) lines.push('🚨 *No calls:* '+zeroCall.map(r=>getOwnerName(r.owner)).join(', '));
+  if(lowConn.length)  lines.push('⚠️ *Low connect rate:* '+lowConn.map(r=>`${getOwnerName(r.owner)} (${(r.connected/r.dialed*100).toFixed(0)}%)`).join(', '));
+  if(highFU.length)   lines.push('📌 *Follow-up backlog:* '+highFU.slice(0,5).map(r=>`${getOwnerName(r.owner)} (${r.followup})`).join(', '));
+
+  await postToSlack({
+    blocks:[
+      {type:'section',text:{type:'mrkdwn',text:`*⚡ Lead Dashboard Alert — ${getWeekLabel()}*\n${lines.join('\n')}`}},
+      {type:'context',elements:[{type:'mrkdwn',text:'Auto-alert · '+new Date().toLocaleTimeString('en-IN')}]}
+    ],
+    text:'Lead Dashboard Alert: '+lines.join(' | ')
+  });
+}
+
+function showSlackCorsHelp(){
+  // Show inline help instead of a disruptive alert
+  const panel = document.querySelector('.slack-panel');
+  if(!panel) return;
+  const existing = document.getElementById('slack-cors-help');
+  if(existing) return; // already showing
+
+  const helpDiv = document.createElement('div');
+  helpDiv.id = 'slack-cors-help';
+  helpDiv.style.cssText = 'margin-top:12px;padding:12px 14px;background:rgba(74,21,75,0.12);border:1px solid #4a154b;border-radius:8px;font-size:12px;line-height:1.8;color:var(--t2)';
+  helpDiv.innerHTML = `
+    <div style="font-size:13px;font-weight:500;color:#e8d5e8;margin-bottom:8px">⚠ Browser CORS restriction — Slack blocks direct POST from browsers</div>
+    <b style="color:var(--t1)">Option 1 — Make.com (free, 5 min setup, recommended):</b><br>
+    1. Go to <a href="https://make.com" target="_blank" style="color:#a78bfa">make.com</a> → Create free account → New scenario<br>
+    2. Add trigger: <b>Webhooks → Custom webhook</b> → copy the Make webhook URL<br>
+    3. Add action: <b>Slack → Send a message</b> → connect your Slack → pick channel<br>
+    4. Map <code>text</code> field from webhook payload → Save → Activate<br>
+    5. Paste the Make webhook URL here instead of the Slack webhook URL<br><br>
+    <b style="color:var(--t1)">Option 2 — Deploy a free Cloudflare Worker (1 min):</b><br>
+    1. Go to <a href="https://workers.cloudflare.com" target="_blank" style="color:#a78bfa">workers.cloudflare.com</a> → Free account → Create Worker<br>
+    2. Replace the code with the snippet below → Deploy → copy your Worker URL<br>
+    3. Paste your Worker URL as the webhook URL in this dashboard<br>
+    <pre style="background:var(--bg4);padding:8px;border-radius:4px;margin-top:6px;font-size:10px;overflow-x:auto;color:#34d399">export default {
+  async fetch(req) {
+    const body = await req.text();
+    const r = await fetch('YOUR_SLACK_WEBHOOK_URL', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body
+    });
+    return new Response(await r.text(), {
+      headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST'}
+    });
+  }
+};</pre>
+    Replace <code>YOUR_SLACK_WEBHOOK_URL</code> with your actual Slack webhook URL.<br><br>
+    <b style="color:var(--t1)">Option 3 — Download and open locally:</b><br>
+    Download the HTML file → open Terminal → run: <code>python3 -m http.server 8080</code> → open <code>http://localhost:8080</code>
+    <div style="margin-top:8px"><button onclick="document.getElementById('slack-cors-help').remove()" style="background:transparent;border:1px solid #4a154b;color:#e8d5e8;border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px">Dismiss</button></div>
+  `;
+  panel.appendChild(helpDiv);
+}
+
+
+buildFcUI();
+loadAct();
+loadSlackUrl();
+restoreTpUI();
+const tweaksRestored = loadTweaks();
+restoreSheetUI();
+if(!tweaksRestored) setSc('base');
+else upd();
+</script>
+</body>
+</html>
